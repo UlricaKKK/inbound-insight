@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>邓可欣 (Deng Kexin) - Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-pink': '#FF6B6B',
+                        'brand-blue': '#4D96FF',
+                        'brand-yellow': '#FFD93D',
+                        'brand-dark': '#1A1A1A',
+                        'brand-light': '#F9F9F9',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'neobrutalism': '4px 4px 0px 0px #1A1A1A',
+                        'neobrutalism-sm': '2px 2px 0px 0px #1A1A1A',
+                        'neobrutalism-lg': '8px 8px 0px 0px #1A1A1A',
+                        'neobrutalism-light': '4px 4px 0px 0px #F9F9F9',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        html {
+            scroll-padding-top: 120px;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .neobrutalism-border {
+            border: 2px solid #1A1A1A;
+        }
+    </style>
+</head>
+<body class="bg-brand-light text-brand-dark">
+
+    <!-- Navbar -->
+    <nav class="fixed top-6 left-0 right-0 z-50 flex justify-center px-4 w-full">
+        <div class="bg-white neobrutalism-border shadow-neobrutalism rounded-full px-6 py-3 flex items-center gap-8 justify-between">
+            <div class="w-8 h-8 rounded-full border-[3px] border-brand-dark bg-brand-yellow"></div>
+            <div class="hidden md:flex gap-6 font-bold text-sm">
+                <a href="#home" class="hover:text-brand-pink transition-colors" data-i18n="nav-home">首页</a>
+                <a href="#about" class="hover:text-brand-pink transition-colors" data-i18n="nav-about">关于我</a>
+                <a href="#portfolio" class="hover:text-brand-pink transition-colors" data-i18n="nav-skills">技能栈</a>
+                <a href="#work-experience" class="hover:text-brand-pink transition-colors" data-i18n="nav-work">工作经历</a>
+                <a href="#experience" class="hover:text-brand-pink transition-colors" data-i18n="nav-exp">实习经历</a>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="lang-toggle" class="font-bold text-sm bg-brand-dark text-white px-3 py-1 rounded-lg hover:bg-brand-blue transition-colors">
+                    EN / 中
+                </button>
+                <button onclick="openContactModal()" class="bg-brand-dark text-white p-2 rounded-full cursor-pointer hover:bg-brand-pink transition-colors">
+                    <i data-lucide="mail" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-32 pb-20 px-4 md:px-8 max-w-6xl mx-auto space-y-32">
+
+        <!-- Hero Section -->
+        <section id="home" class="flex flex-col md:flex-row items-center justify-between gap-12">
+            <div class="flex-1 space-y-6">
+                <h1 class="text-5xl md:text-7xl font-black leading-tight">
+                    <span data-i18n="hero-greeting">我是</span> <span class="bg-brand-pink text-white px-2 transform -rotate-1 inline-block" data-i18n="hero-name">邓可欣</span>,<br>
+                    <span data-i18n="hero-role-prefix">一名</span> <span data-i18n="hero-role">数据分析师</span><br>
+                    <span data-i18n="hero-loc-prefix">来自</span> <span class="bg-brand-blue text-white px-2 transform rotate-1 inline-block" data-i18n="hero-location">上海</span>
+                </h1>
+                <p class="text-gray-600 text-lg max-w-lg" data-i18n="hero-desc">
+                    拥有会计与金融背景，擅长Python与数据分析，致力于通过数据驱动商业决策。
+                </p>
+                <div class="flex flex-wrap gap-4 pt-4">
+                    <button onclick="openContactModal()" class="bg-brand-dark text-white px-8 py-4 rounded-xl font-bold flex items-center gap-2 hover:translate-y-1 hover:shadow-none transition-transform shadow-neobrutalism neobrutalism-border">
+                        <i data-lucide="mail" class="w-5 h-5"></i> <span data-i18n="btn-contact">联系我</span>
+                    </button>
+                    <a href="#portfolio" class="bg-white text-brand-dark px-8 py-4 rounded-xl font-bold flex items-center gap-2 hover:translate-y-1 hover:shadow-none transition-transform shadow-neobrutalism neobrutalism-border">
+                        <i data-lucide="folder" class="w-5 h-5"></i> <span data-i18n="btn-portfolio">查看技能</span>
+                    </a>
+                </div>
+            </div>
+            <div class="flex-1 w-full max-w-md">
+                <div class="bg-brand-yellow rounded-3xl p-0 neobrutalism-border shadow-neobrutalism-lg relative z-10 overflow-hidden aspect-square flex items-end justify-center">
+                    <img src="./assets/avatar.png" alt="Profile Illustration" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </section>
+
+        <!-- Portfolio / Services Section (Renamed to Skills for resume context) -->
+        <section id="portfolio">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black mb-4"><span data-i18n="skills-title-1">我的</span> <span class="bg-brand-pink text-white px-2 transform -rotate-1 inline-block" data-i18n="skills-title-2">核心技能</span></h2>
+                <p class="text-gray-600 max-w-2xl mx-auto" data-i18n="skills-desc">熟练掌握数据分析工具与商业运营策略，具备跨学科背景。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Skill 1 -->
+                <div class="bg-white p-8 rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform cursor-default">
+                    <div class="mb-6 h-40 flex items-center justify-center bg-gray-50 rounded-xl neobrutalism-border relative overflow-hidden group">
+                        <i data-lucide="bar-chart-2" class="w-16 h-16 text-brand-blue"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3" data-i18n="skill-1-title">数据分析</h3>
+                    <p class="text-gray-600" data-i18n="skill-1-desc">精通 Python (Pandas, NumPy, Matplotlib), SQL, Excel。擅长数据清洗、建模与可视化。</p>
+                </div>
+
+                <!-- Skill 2 -->
+                <div class="bg-white p-8 rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform cursor-default">
+                    <div class="mb-6 h-40 flex items-center justify-center bg-gray-50 rounded-xl neobrutalism-border relative">
+                         <i data-lucide="trending-up" class="w-16 h-16 text-brand-pink"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3" data-i18n="skill-2-title">产品运营</h3>
+                    <p class="text-gray-600" data-i18n="skill-2-desc">具备商业化产品运营经验，擅长数据监控、竞品分析与用户分层运营策略制定。</p>
+                </div>
+
+                <!-- Skill 3 -->
+                <div class="bg-white p-8 rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform cursor-default">
+                    <div class="mb-6 h-40 flex items-center justify-center bg-gray-50 rounded-xl neobrutalism-border relative">
+                        <i data-lucide="layout" class="w-16 h-16 text-brand-yellow"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3" data-i18n="skill-3-title">项目管理</h3>
+                    <p class="text-gray-600" data-i18n="skill-3-desc">具备从0到1搭建项目协同机制经验，擅长数据可视化与产品思维，能高效推动跨团队合作落地。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Works Section (Xiaohongshu) -->
+        <section id="works">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black mb-4"><span data-i18n="works-title-1">我的</span> <span class="bg-brand-yellow text-brand-dark px-2 transform rotate-1 inline-block" data-i18n="works-title-2">小红书作品</span></h2>
+                <p class="text-gray-600 max-w-2xl mx-auto" data-i18n="works-desc">分享求职经验与职场心得，累计帮助数万名求职者避坑。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Work 1 (6000+) -->
+                <a href="https://www.xiaohongshu.com/discovery/item/67ed0e72000000001e004d43" target="_blank" class="bg-white rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform overflow-hidden flex flex-col group h-full">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-brand-pink/10 group-hover:bg-brand-pink/20 transition-colors"></div>
+                        <i data-lucide="database" class="w-16 h-16 text-brand-pink transform group-hover:scale-110 transition-transform"></i>
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold neobrutalism-border flex items-center gap-1">
+                            <i data-lucide="heart" class="w-3 h-3 text-red-500 fill-red-500"></i> 6000+
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-pink transition-colors">运营面试真的会问sql啊！</h3>
+                        <div class="mt-auto flex items-center gap-2 text-sm text-gray-500">
+                            <i data-lucide="user" class="w-4 h-4"></i> 红豆nini
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Work 2 (3000+) -->
+                <a href="https://www.xiaohongshu.com/discovery/item/6719e81e000000002100b905?source=webshare&xhsshare=pc_web&xsec_token=ABoKgn3sHj5CFjqf5AieZSS970crK05mshPdF2pZH2mYw=&xsec_source=pc_share" target="_blank" class="bg-white rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform overflow-hidden flex flex-col group h-full">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-brand-yellow/10 group-hover:bg-brand-yellow/20 transition-colors"></div>
+                        <i data-lucide="users" class="w-16 h-16 text-brand-yellow transform group-hover:scale-110 transition-transform"></i>
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold neobrutalism-border flex items-center gap-1">
+                            <i data-lucide="heart" class="w-3 h-3 text-red-500 fill-red-500"></i> 3000+
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-yellow transition-colors">当别人在秋招而你找实习……</h3>
+                        <div class="mt-auto flex items-center gap-2 text-sm text-gray-500">
+                            <i data-lucide="user" class="w-4 h-4"></i> 红豆nini
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Work 3 -->
+                <a href="https://www.xiaohongshu.com/discovery/item/68ee19d40000000005003497" target="_blank" class="bg-white rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform overflow-hidden flex flex-col group h-full">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-brand-pink/10 group-hover:bg-brand-pink/20 transition-colors"></div>
+                        <i data-lucide="thumbs-up" class="w-16 h-16 text-brand-pink transform group-hover:scale-110 transition-transform"></i>
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold neobrutalism-border flex items-center gap-1">
+                            <i data-lucide="heart" class="w-3 h-3 text-red-500 fill-red-500"></i> 1000+
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-pink transition-colors">在26届身上看到了自己去年踩过的雷</h3>
+                        <div class="mt-auto flex items-center gap-2 text-sm text-gray-500">
+                            <i data-lucide="user" class="w-4 h-4"></i> 红豆nini
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Work 4 -->
+                <a href="https://www.xiaohongshu.com/discovery/item/68b00bef000000001b01e421" target="_blank" class="bg-white rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform overflow-hidden flex flex-col group h-full">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-brand-blue/10 group-hover:bg-brand-blue/20 transition-colors"></div>
+                        <i data-lucide="user-check" class="w-16 h-16 text-brand-blue transform group-hover:scale-110 transition-transform"></i>
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold neobrutalism-border flex items-center gap-1">
+                            <i data-lucide="heart" class="w-3 h-3 text-red-500 fill-red-500"></i> 1000+
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-blue transition-colors">从面试官的角度看面试真的不一样！</h3>
+                        <div class="mt-auto flex items-center gap-2 text-sm text-gray-500">
+                            <i data-lucide="user" class="w-4 h-4"></i> 红豆nini
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Work 5 -->
+                <a href="https://www.xiaohongshu.com/discovery/item/686b84cc000000001c031e78" target="_blank" class="bg-white rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform overflow-hidden flex flex-col group h-full">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-brand-yellow/10 group-hover:bg-brand-yellow/20 transition-colors"></div>
+                        <i data-lucide="message-square" class="w-16 h-16 text-brand-yellow transform group-hover:scale-110 transition-transform"></i>
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold neobrutalism-border flex items-center gap-1">
+                            <i data-lucide="heart" class="w-3 h-3 text-red-500 fill-red-500"></i> 1000+
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-yellow transition-colors">大厂业务面说我讲得太细了……</h3>
+                        <div class="mt-auto flex items-center gap-2 text-sm text-gray-500">
+                            <i data-lucide="user" class="w-4 h-4"></i> 红豆nini
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Work 6 -->
+                <a href="https://www.xiaohongshu.com/discovery/item/677a1cca0000000014022ecf" target="_blank" class="bg-white rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform overflow-hidden flex flex-col group h-full">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-brand-yellow/10 group-hover:bg-brand-yellow/20 transition-colors"></div>
+                        <i data-lucide="users" class="w-16 h-16 text-brand-yellow transform group-hover:scale-110 transition-transform"></i>
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold neobrutalism-border flex items-center gap-1">
+                            <i data-lucide="heart" class="w-3 h-3 text-red-500 fill-red-500"></i> 1000+
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-yellow transition-colors">用户分层次场景营销SOP</h3>
+                        <div class="mt-auto flex items-center gap-2 text-sm text-gray-500">
+                            <i data-lucide="user" class="w-4 h-4"></i> 红豆nini
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Work 7 (New: Market Insight System) -->
+                <a href="./市场洞察报告.html" target="_blank" class="bg-white rounded-3xl neobrutalism-border shadow-neobrutalism hover:-translate-y-2 transition-transform overflow-hidden flex flex-col group h-full">
+                    <div class="h-48 bg-gray-100 flex items-center justify-center relative overflow-hidden">
+                        <div class="absolute inset-0 bg-brand-blue/10 group-hover:bg-brand-blue/20 transition-colors"></div>
+                        <i data-lucide="globe" class="w-16 h-16 text-brand-blue transform group-hover:scale-110 transition-transform"></i>
+                        <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold neobrutalism-border flex items-center gap-1">
+                            <i data-lucide="zap" class="w-3 h-3 text-blue-500 fill-blue-500"></i> LTM 2026
+                        </div>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col">
+                        <h3 class="text-xl font-bold mb-3 line-clamp-2 group-hover:text-brand-blue transition-colors">入境游站点维度市场洞察系统 (2025-2026)</h3>
+                        <div class="mt-auto flex items-center gap-2 text-sm text-gray-500">
+                            <i data-lucide="activity" class="w-4 h-4"></i> 实时联网分析版
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="flex flex-col md:flex-row items-center gap-12">
+            <div class="flex-1 w-full max-w-md">
+                <div class="bg-brand-pink rounded-full p-0 neobrutalism-border shadow-neobrutalism aspect-square flex items-end justify-center overflow-hidden border-[3px] border-brand-dark relative">
+                    <img src="./assets/avatar.png" alt="About Me" class="w-full h-full object-cover">
+                </div>
+            </div>
+            <div class="flex-1 space-y-6">
+                <h2 class="text-4xl md:text-5xl font-black"><span data-i18n="about-title-1">关于</span> <span class="bg-brand-blue text-white px-2 transform rotate-1 inline-block" data-i18n="about-title-2">我</span></h2>
+                <div class="space-y-4">
+                    <p class="text-gray-600 text-lg leading-relaxed" data-i18n="about-intro-1">
+                        我是邓可欣，毕业于华东理工大学，现任携程策略运营，负责入境游项目管理与业绩分析工作，统筹跨团队协同、数据监控体系搭建及精细化运营策略落地，推动项目超额完成年度目标。
+                    </p>
+                    <p class="text-gray-600 text-lg leading-relaxed" data-i18n="about-intro-2">
+                        曾在字节跳动、游族网络、明略科技实习，积累了丰富的数据分析与产品运营实战经验，擅长通过数据洞察驱动业务决策，具备从0到1搭建协同机制与数据体系的能力。
+                    </p>
+                    <p class="text-gray-600 text-lg italic bg-gray-50 p-4 rounded-xl border-l-4 border-brand-yellow" data-i18n="about-intro-quote">
+                        爱好写作、旅游、摄影，性格开朗，乐于接触新鲜事物。因为“使沙漠显得美丽的，是它在某处藏着一口井。”，所以为了找寻一口井，我会翻越整个沙漠。
+                    </p>
+                </div>
+                
+                <div class="space-y-6 pt-4">
+                    <div class="flex gap-4 items-start">
+                        <div class="w-6 h-6 rounded bg-brand-blue border-2 border-brand-dark flex-shrink-0 mt-1 shadow-[2px_2px_0px_0px_#1A1A1A]"></div>
+                        <div>
+                            <h4 class="font-bold text-xl" data-i18n="about-edu-title">教育背景</h4>
+                            <p class="text-gray-600" data-i18n="about-edu-desc">华东理工大学 (硕士) & 武汉理工大学 (本科)</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 items-start">
+                        <div class="w-6 h-6 rounded bg-brand-pink border-2 border-brand-dark flex-shrink-0 mt-1 shadow-[2px_2px_0px_0px_#1A1A1A]"></div>
+                        <div>
+                            <h4 class="font-bold text-xl" data-i18n="about-lang-title">语言能力</h4>
+                            <p class="text-gray-600" data-i18n="about-lang-desc">英语 CET-6 (502), CET-4 (512)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8">
+                    <a href="#experience" class="bg-brand-dark text-white px-8 py-4 rounded-xl font-bold inline-flex items-center gap-2 hover:translate-y-1 hover:shadow-none transition-transform shadow-neobrutalism neobrutalism-border">
+                        <i data-lucide="user" class="w-5 h-5"></i> <span data-i18n="btn-more-exp">查看详细经历</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Work Experience Section (Ctrip) -->
+    <section id="work-experience" class="bg-brand-dark text-white py-24 px-4 md:px-8 border-b border-gray-800">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-16">
+            <div class="flex-1 space-y-8">
+                <h2 class="text-4xl md:text-6xl font-black leading-tight"><span data-i18n="work-title-1">我的</span> <span class="bg-brand-pink text-white px-2 inline-block transform -rotate-2" data-i18n="work-title-2">工作经历</span></h2>
+                <p class="text-gray-400 text-lg max-w-md" data-i18n="work-desc">
+                    在携程国内业务管理中心担任策略运营，负责入境游专项项目管理与数据驱动决策。
+                </p>
+            </div>
+            
+            <div class="flex-1 space-y-6">
+                <!-- Work Item 1 -->
+                <div class="bg-white text-brand-dark p-8 rounded-2xl neobrutalism-border shadow-[4px_4px_0px_0px_#FF6B6B]">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="font-bold text-lg" data-i18n="work-1-date">2025.01 - 至今</span>
+                        <div class="bg-brand-pink p-2 rounded-full neobrutalism-border w-10 h-10 flex items-center justify-center shadow-sm">
+                            <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black mb-1" data-i18n="work-1-role">策略运营 (国内业务管理中心)</h3>
+                    <p class="text-sm font-bold text-brand-pink mb-4" data-i18n="work-1-company">携程 (上海)</p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-bold text-lg mb-1" data-i18n="work-1-sub1-title">入境游专项项目管理</h4>
+                            <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                <li data-i18n="work-1-sub1-desc1">搭建项目协同机制：整合19个重点城市热力图、480个重点POI等核心信息，建立周会机制，累计解决23个跨团队卡点。</li>
+                                <li data-i18n="work-1-sub1-desc2">构建数据监控体系：搭建多维度下钻报表，捕捉卢布支付订单跃升趋势，推动俄罗斯站点提前开站，Q4单季贡献GMV 2800万+。</li>
+                                <li data-i18n="work-1-sub1-desc3">落地精细化运营策略：全年推动新增景点6434家，新增商品贡献GMV 1.86亿元；项目全年GMV 6.46亿（同比+251%）。</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-lg mb-1" data-i18n="work-1-sub2-title">业绩分析与策略输出</h4>
+                            <ul class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                                <li data-i18n="work-1-sub2-desc1">优化数据基建：重构工作台看板，核心指标监控从T+3缩短至T+1；建立节假日复盘流程，输出专题报告5份。</li>
+                                <li data-i18n="work-1-sub2-desc2">异常识别与策略落地：识别经营异常并定位根因，协同调整策略，推动问题品类转化率回升。</li>
+                                <li data-i18n="work-1-sub2-desc3">数据洞察增量贡献：输出精细化运营建议，推动节假日差异化营销，带动核心品类GMV环比增长22%和18%。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section (Full Width Dark) -->
+    <section id="experience" class="bg-brand-dark text-white py-24 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row gap-16">
+            <div class="flex-1 space-y-8">
+                <h2 class="text-4xl md:text-6xl font-black leading-tight"><span data-i18n="exp-title-1">我的</span> <span class="bg-brand-blue text-white px-2 inline-block transform -rotate-2" data-i18n="exp-title-2">实习经历</span></h2>
+                <p class="text-gray-400 text-lg max-w-md" data-i18n="exp-desc">
+                    曾在互联网大厂与科技公司核心部门实习，负责商业化运营、数据监控与分析工作。
+                </p>
+                <div class="pt-4">
+                    <a href="#" class="bg-white text-brand-dark px-8 py-4 rounded-xl font-bold inline-flex items-center gap-2 hover:translate-y-1 hover:shadow-none transition-transform shadow-neobrutalism-light neobrutalism-border">
+                        <i data-lucide="file-text" class="w-5 h-5"></i> <span data-i18n="btn-resume">下载简历</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="flex-1 space-y-6">
+                <!-- Experience Item 1 -->
+                <div class="bg-white text-brand-dark p-8 rounded-2xl neobrutalism-border shadow-[4px_4px_0px_0px_#4D96FF]">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="font-bold text-lg" data-i18n="exp-1-date">2024.10 - 2024.12</span>
+                        <div class="bg-brand-blue p-2 rounded-full neobrutalism-border w-10 h-10 flex items-center justify-center shadow-sm">
+                            <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black mb-1" data-i18n="exp-1-role">商业化产品运营</h3>
+                    <p class="text-sm font-bold text-brand-blue mb-2" data-i18n="exp-1-company">北京字节跳动科技有限公司</p>
+                    <p class="text-gray-600" data-i18n="exp-1-desc">负责跨部门协调，监控项目流程数据，调整资源配置。进行数据分析与效果复盘，洞察市场声量，优化选词逻辑，显著提升商户接单率与GMV。</p>
+                </div>
+
+                <!-- Experience Item 2 -->
+                <div class="bg-white text-brand-dark p-8 rounded-2xl neobrutalism-border shadow-[4px_4px_0px_0px_#4D96FF]">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="font-bold text-lg" data-i18n="exp-2-date">2024.04 - 2024.08</span>
+                        <div class="bg-brand-blue p-2 rounded-full neobrutalism-border w-10 h-10 flex items-center justify-center shadow-sm">
+                            <i data-lucide="gamepad-2" class="w-5 h-5 text-white"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black mb-1" data-i18n="exp-2-role">产品运营</h3>
+                    <p class="text-sm font-bold text-brand-blue mb-2" data-i18n="exp-2-company">上海游族信息技术有限公司</p>
+                    <p class="text-gray-600" data-i18n="exp-2-desc">对游戏产品商业化全周期数据进行监控与分析，搭建用户分层体系。负责付费活动策划与竞品调研，提升用户留存率与付费意愿。</p>
+                </div>
+
+                <!-- Experience Item 3 -->
+                <div class="bg-white text-brand-dark p-8 rounded-2xl neobrutalism-border shadow-[4px_4px_0px_0px_#FFD93D]">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="font-bold text-lg" data-i18n="exp-3-date">2023.12 - 2024.03</span>
+                        <div class="bg-brand-yellow p-2 rounded-full neobrutalism-border w-10 h-10 flex items-center justify-center shadow-sm">
+                            <i data-lucide="database" class="w-5 h-5 text-brand-dark"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black mb-1" data-i18n="exp-3-role">数据分析</h3>
+                    <p class="text-sm font-bold text-brand-blue mb-2" data-i18n="exp-3-company">北京明略软件系统有限公司</p>
+                    <p class="text-gray-600" data-i18n="exp-3-desc">基于Hive/Greenplum构建底层数据模型，清洗与标准化消费者行为数据。协助精准营销策略落地，提升客户营销活动ROI。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-brand-dark text-white py-12 text-center border-t border-gray-800">
+        <p class="font-bold">© 2024 Deng Kexin. All rights reserved.</p>
+    </footer>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white neobrutalism-border shadow-neobrutalism-lg rounded-2xl w-full max-w-md overflow-hidden transform transition-all">
+            <!-- Browser Header -->
+            <div class="bg-white border-b-2 border-brand-dark p-4 flex items-center justify-between">
+                <div class="flex gap-2">
+                    <div class="w-3 h-3 rounded-full bg-brand-pink border border-brand-dark"></div>
+                    <div class="w-3 h-3 rounded-full bg-brand-yellow border border-brand-dark"></div>
+                    <div class="w-3 h-3 rounded-full bg-brand-blue border border-brand-dark"></div>
+                </div>
+                <button onclick="closeContactModal()" class="text-brand-dark hover:text-brand-pink transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <!-- Content -->
+            <div class="p-8 space-y-6">
+                <div class="flex items-center gap-4 group">
+                    <div class="w-12 h-12 bg-brand-blue rounded-lg neobrutalism-border flex items-center justify-center shadow-neobrutalism-sm group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-none transition-all">
+                        <i data-lucide="mail" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider" data-i18n="contact-email">Email</p>
+                        <p class="text-lg font-black">2781408436@qq.com</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 group">
+                    <div class="w-12 h-12 bg-brand-pink rounded-lg neobrutalism-border flex items-center justify-center shadow-neobrutalism-sm group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-none transition-all">
+                        <i data-lucide="phone" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider" data-i18n="contact-phone">Phone</p>
+                        <p class="text-lg font-black">15573320365</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 group">
+                    <div class="w-12 h-12 bg-brand-yellow rounded-lg neobrutalism-border flex items-center justify-center shadow-neobrutalism-sm group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:shadow-none transition-all">
+                        <i data-lucide="hash" class="w-6 h-6 text-brand-dark"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500 uppercase tracking-wider" data-i18n="contact-xhs">小红书</p>
+                        <p class="text-lg font-black">红豆nini</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="p-6 bg-gray-50 border-t-2 border-brand-dark flex justify-end">
+                <button onclick="closeContactModal()" class="bg-brand-dark text-white px-6 py-2 rounded-lg font-bold neobrutalism-border shadow-neobrutalism-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none transition-all" data-i18n="btn-close">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Translation Data
+        const translations = {
+            zh: {
+                "nav-home": "首页",
+                "nav-about": "关于我",
+                "nav-skills": "技能栈",
+                "nav-work": "工作经历",
+                "nav-exp": "实习经历",
+                "hero-greeting": "我是",
+                "hero-name": "邓可欣",
+                "hero-role-prefix": "一名",
+                "hero-role": "数据分析师",
+                "hero-loc-prefix": "来自",
+                "hero-location": "上海",
+                "hero-desc": "拥有会计与金融背景，擅长Python与数据分析，致力于通过数据驱动商业决策。",
+                "btn-contact": "联系我",
+                "btn-portfolio": "查看技能",
+                "skills-title-1": "我的",
+                "skills-title-2": "核心技能",
+                "skills-desc": "熟练掌握数据分析工具与商业运营策略，具备跨学科背景。",
+                "skill-1-title": "数据分析",
+                "skill-1-desc": "精通 Python (Pandas, NumPy, Matplotlib), SQL, Excel。擅长数据清洗、建模与可视化。",
+                "skill-2-title": "产品运营",
+                "skill-2-desc": "具备商业化产品运营经验，擅长数据监控、竞品分析与用户分层运营策略制定。",
+                "skill-3-title": "项目管理",
+                "skill-3-desc": "具备从0到1搭建项目协同机制经验，擅长数据可视化与产品思维，能高效推动跨团队合作落地。",
+                "works-title-1": "我的",
+                "works-title-2": "小红书作品",
+                "works-desc": "分享求职经验与职场心得，累计帮助数万名求职者避坑。",
+                "about-title-1": "关于",
+                "about-title-2": "我",
+                "about-intro-1": "我是邓可欣，毕业于华东理工大学，现任携程策略运营，负责入境游项目管理与业绩分析工作，统筹跨团队协同、数据监控体系搭建及精细化运营策略落地，推动项目超额完成年度目标。",
+                "about-intro-2": "曾在字节跳动、游族网络、明略科技实习，积累了丰富的数据分析与产品运营实战经验，擅长通过数据洞察驱动业务决策，具备从0到1搭建协同机制与数据体系的能力。",
+                "about-intro-quote": "爱好写作、旅游、摄影，性格开朗，乐于接触新鲜事物。因为“使沙漠显得美丽的，是它在某处藏着一口井。”，所以为了找寻一口井，我会翻越整个沙漠。",
+                "about-edu-title": "教育背景",
+                "about-edu-desc": "华东理工大学 (硕士) & 武汉理工大学 (本科)",
+                "about-lang-title": "语言能力",
+                "about-lang-desc": "英语 CET-6 (502), CET-4 (512)",
+                "btn-more-exp": "查看详细经历",
+                "work-title-1": "我的",
+                "work-title-2": "工作经历",
+                "work-desc": "在携程国内业务管理中心担任策略运营，负责入境游专项项目管理与数据驱动决策。",
+                "work-1-date": "2025.01 - 至今",
+                "work-1-role": "策略运营 (国内业务管理中心)",
+                "work-1-company": "携程 (上海)",
+                "work-1-sub1-title": "入境游专项项目管理",
+                "work-1-sub1-desc1": "搭建项目协同机制：整合19个重点城市热力图、480个重点POI等核心信息，建立周会机制，累计解决23个跨团队卡点。",
+                "work-1-sub1-desc2": "构建数据监控体系：搭建多维度下钻报表，捕捉卢布支付订单跃升趋势，推动俄罗斯站点提前开站，Q4单季贡献GMV 2800万+。",
+                "work-1-sub1-desc3": "落地精细化运营策略：全年推动新增景点6434家，新增商品贡献GMV 1.86亿元；项目全年GMV 6.46亿（同比+251%）。",
+                "work-1-sub2-title": "业绩分析与策略输出",
+                "work-1-sub2-desc1": "优化数据基建：重构工作台看板，核心指标监控从T+3缩短至T+1；建立节假日复盘流程，输出专题报告5份。",
+                "work-1-sub2-desc2": "异常识别与策略落地：识别经营异常并定位根因，协同调整策略，推动问题品类转化率回升。",
+                "work-1-sub2-desc3": "数据洞察增量贡献：输出精细化运营建议，推动节假日差异化营销，带动核心品类GMV环比增长22%和18%。",
+                "exp-title-1": "我的",
+                "exp-title-2": "实习经历",
+                "exp-desc": "曾在互联网大厂与科技公司核心部门实习，负责商业化运营、数据监控与分析工作。",
+                "btn-resume": "下载简历",
+                "exp-1-date": "2024.10 - 2024.12",
+                "exp-1-role": "商业化产品运营",
+                "exp-1-company": "北京字节跳动科技有限公司",
+                "exp-1-desc": "负责跨部门协调，监控项目流程数据，调整资源配置。进行数据分析与效果复盘，洞察市场声量，优化选词逻辑，显著提升商户接单率与GMV。",
+                "exp-2-date": "2024.04 - 2024.08",
+                "exp-2-role": "产品运营",
+                "exp-2-company": "上海游族信息技术有限公司",
+                "exp-2-desc": "对游戏产品商业化全周期数据进行监控与分析，搭建用户分层体系。负责付费活动策划与竞品调研，提升用户留存率与付费意愿。",
+                "exp-3-date": "2023.12 - 2024.03",
+                "exp-3-role": "数据分析",
+                "exp-3-company": "北京明略软件系统有限公司",
+                "exp-3-desc": "基于Hive/Greenplum构建底层数据模型，清洗与标准化消费者行为数据。协助精准营销策略落地，提升客户营销活动ROI。",
+                "contact-email": "邮箱",
+                "contact-phone": "电话",
+                "contact-xhs": "小红书",
+                "btn-close": "关闭"
+            },
+            en: {
+                "nav-home": "Home",
+                "nav-about": "About",
+                "nav-skills": "Skills",
+                "nav-exp": "Experience",
+                "hero-greeting": "I'm",
+                "hero-name": "Deng Kexin",
+                "hero-role-prefix": "a",
+                "hero-role": "Data Analyst",
+                "hero-loc-prefix": "from",
+                "hero-location": "Shanghai",
+                "hero-desc": "With a background in Accounting and Finance, skilled in Python and Data Analysis, dedicated to driving business decisions through data.",
+                "btn-contact": "Contact Me",
+                "btn-portfolio": "View Skills",
+                "skills-title-1": "My",
+                "skills-title-2": "Core Skills",
+                "skills-desc": "Proficient in data analysis tools and business operation strategies, with an interdisciplinary background.",
+                "skill-1-title": "Data Analysis",
+                "skill-1-desc": "Proficient in Python (Pandas, NumPy, Matplotlib), SQL, Excel. Skilled in data cleaning, modeling, and visualization.",
+                "skill-2-title": "Product Operation",
+                "skill-2-desc": "Experienced in commercial product operations, skilled in data monitoring, competitive analysis, and user segmentation strategies.",
+                "skill-3-title": "Project Management",
+                "skill-3-desc": "Experience in building project collaboration mechanisms from 0 to 1, skilled in data visualization and product thinking.",
+                "works-title-1": "My",
+                "works-title-2": "Xiaohongshu Posts",
+                "works-desc": "Sharing job hunting experiences and workplace insights, helping thousands of job seekers.",
+                "about-title-1": "About",
+                "about-title-2": "Me",
+                "about-intro-1": "I am Deng Kexin, a graduate of ECUST, currently working as a Strategy Operations Specialist at Ctrip, responsible for inbound tourism project management and performance analysis. I coordinate cross-team collaboration, build data monitoring systems, and implement refined operation strategies, driving the project to exceed annual targets.",
+                "about-intro-2": "I have interned at ByteDance, Youzu Interactive, and Minglue Technology, accumulating rich practical experience in data analysis and product operations. I excel at driving business decisions through data insights and have the ability to build collaboration mechanisms and data systems from 0 to 1.",
+                "about-intro-quote": "I enjoy writing, traveling, and photography. I have a cheerful personality and love exploring new things. As 'What makes the desert beautiful is that somewhere it hides a well,' I will traverse the entire desert to find that well.",
+                "about-edu-title": "Education",
+                "about-edu-desc": "ECUST (Master's) & WIT (Bachelor's)",
+                "about-lang-title": "Languages",
+                "about-lang-desc": "English CET-6 (502), CET-4 (512)",
+                "btn-more-exp": "More Details",
+                "work-title-1": "My",
+                "work-title-2": "Work Experience",
+                "work-desc": "Strategy Operations at Ctrip (Domestic Business Management Center), responsible for inbound tourism project management and data-driven decision making.",
+                "work-1-date": "Jan 2025 - Present",
+                "work-1-role": "Strategy Operations",
+                "work-1-company": "Ctrip (Shanghai)",
+                "work-1-sub1-title": "Inbound Tourism Project Management",
+                "work-1-sub1-desc1": "Built project collaboration mechanisms: Integrated core info like heat maps of 19 key cities, established weekly meetings, resolving 23 cross-team blockers.",
+                "work-1-sub2-title": "Performance Analysis & Strategy Output",
+                "work-1-sub2-desc1": "Optimized data infrastructure: Reconstructed dashboard structure, shortening core metric tracking from T+3 to T+1; Established holiday review process.",
+                "work-1-sub2-desc2": "Anomaly identification & strategy implementation: Identified business anomalies and root causes, coordinated strategy adjustments, driving conversion rate recovery.",
+                "work-1-sub2-desc3": "Data insights for incremental contribution: Output refined operation suggestions based on user segmentation, driving holiday GMV growth of 22% and 18%.",
+                "exp-title-1": "My",
+                "exp-title-2": "Experience",
+                "exp-desc": "Interned at top internet and tech companies, responsible for commercial operations, data monitoring, and analysis.",
+                "btn-resume": "Download Resume",
+                "exp-1-date": "Oct 2024 - Dec 2024",
+                "exp-1-role": "Commercial Product Operation",
+                "exp-1-company": "ByteDance",
+                "exp-1-desc": "Coordinated cross-functional projects, monitored process data, and optimized resource allocation. Conducted data analysis and reviews, improving merchant acceptance rates and GMV.",
+                "exp-2-date": "Apr 2024 - Aug 2024",
+                "exp-2-role": "Product Operation",
+                "exp-2-company": "Youzu Interactive",
+                "exp-2-desc": "Monitored full-cycle commercialization data, built user segmentation systems. Planned paid events and conducted competitive research, improving user retention and payment willingness.",
+                "exp-3-date": "Dec 2023 - Mar 2024",
+                "exp-3-role": "Data Analysis",
+                "exp-3-company": "Minglue Software",
+                "exp-3-desc": "Built underlying data models based on Hive/Greenplum, cleaned and standardized consumer behavior data. Assisted in precision marketing strategies, improving marketing ROI.",
+                "contact-email": "Email",
+                "contact-phone": "Phone",
+                "contact-xhs": "Xiaohongshu",
+                "btn-close": "Close"
+            }
+        };
+
+        // Modal Logic
+        const modal = document.getElementById('contact-modal');
+        function openContactModal() {
+            modal.classList.remove('hidden');
+        }
+        function closeContactModal() {
+            modal.classList.add('hidden');
+        }
+        // Close when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeContactModal();
+            }
+        });
+
+        // Language Toggle Logic
+        let currentLang = 'zh';
+        const langToggleBtn = document.getElementById('lang-toggle');
+
+        function updateContent() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    // Check if the element contains HTML structure (like the quote block)
+                    if (key === 'about-intro-quote' || key === 'about-intro-1' || key === 'about-intro-2') {
+                        el.innerHTML = translations[currentLang][key];
+                    } else {
+                        el.textContent = translations[currentLang][key];
+                    }
+                }
+            });
+            // Update document title
+            document.title = currentLang === 'zh' ? '邓可欣 (Deng Kexin) - 作品集' : 'Deng Kexin - Portfolio';
+            // Update button text
+            // langToggleBtn.textContent = currentLang === 'zh' ? 'Switch to EN' : '切换中文';
+        }
+
+        langToggleBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            updateContent();
+        });
+
+        // Initialize content
+        updateContent();
+    </script>
+</body>
+</html>

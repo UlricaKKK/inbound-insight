@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入境游市场洞察系统 - Inbound Tourism Intelligence</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ctrip-blue': '#0086F8',
+                        'ctrip-orange': '#FF9913',
+                        'brand-dark': '#1A1A1A',
+                    },
+                    boxShadow: {
+                        'card': '0 4px 20px -2px rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+        }
+        .report-section {
+            page-break-inside: avoid;
+        }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- Mock Data ---
+        const SITES = ['HK', 'KR', 'US', 'TW', 'JP', 'TH', 'SG', 'MY', 'RU', 'AU', 'GB', 'ID', 'FR', 'ES', 'IT', 'DE'];
+        const CITIES = ['北京', '上海', '广州', '成都', '西安', '杭州', '昆明', '张家界'];
+        const CATEGORIES = ['景点门票', '当地玩乐', '一日游', '私家团', '文化体验'];
+
+        // Mock Insights Data Generator
+        const generateMockData = (site, city) => {
+            const isBeijing = city === '北京';
+            return {
+                timestamp: new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
+                shi: Math.floor(Math.random() * 20) + 80,
+                shiYoY: (Math.random() * 25).toFixed(1),
+                sov: [
+                    { name: city, value: 28.4, trend: 'up', tags: isBeijing ? '故宫/长城/政治地标' : '核心景区/地方文化' },
+                    { name: '上海', value: 22.1, trend: 'up', tags: '摩登都市/购物/商务' },
+                    { name: '广东', value: 11.3, trend: 'up', tags: '美食/港澳联游/粤文化' },
+                    { name: '四川', value: 9.7, trend: 'up', tags: '熊猫/自然/非遗' },
+                ],
+                sourceMarkets: [
+                    { country: '美国', share: '14.2%', growth: '12.4%', policy: '免签政策落地', details: '深度文化探索型，偏好胡同骑行与英文导游团' },
+                    { country: '韩国', share: '11.8%', growth: '31.7%', policy: '免签+高铁', details: '高频短途城市型，对周末出行与韩语导览敏感' },
+                    { country: '俄罗斯', share: '10.3%', growth: '44.2%', policy: '免签扩展', details: '政治文化共鸣型，团队游占比高，对中俄友好主题响应强' },
+                    { country: '德国', share: '8.6%', growth: '19.8%', policy: '申根互惠', details: '历史人文精英型，高客单价，偏好建筑遗产与博物馆' },
+                    { country: '日本', share: '7.9%', growth: '8.1%', policy: '签证简化', details: '精致体验挑剔型，对人群密度敏感，偏好非标产品' },
+                ],
+                topKeywords: [
+                    { word: `${city} Hutong experience`, translation: '胡同深度体验', index: 100, yoy: '52%', type: '🏚️ 非遗文化' },
+                    { word: `${city} less crowded section`, translation: '小众段落探索', index: 96, yoy: '61%', type: '🏔️ 自然人文' },
+                    { word: 'Forbidden City skip line', translation: '故宫免排队门票', index: 91, yoy: '28%', type: '🏛️ 核心景点' },
+                    { word: 'High speed train day trip', translation: '高铁一日游', index: 87, yoy: '74%', type: '🚄 高铁玩法' },
+                    { word: 'Local food tour night market', translation: '夜市美食团', index: 84, yoy: '43%', type: '🍜 美食沉浸' },
+                ],
+                actionableAdvice: {
+                    peaks: [
+                        { name: '暑期主峰', range: '7.15 — 8.25', drivers: '欧美家庭、东南亚散客', prep: '提前 8周' },
+                        { name: '国庆黄金峰', range: '9.28 — 10.7', drivers: '韩国周末客、俄罗斯团队', prep: '提前 6周' },
+                        { name: '深秋文化峰', range: '10.20 — 11.10', drivers: '德法精英游客', prep: '提前 4周' },
+                    ],
+                    priorities: [
+                        { name: '俄语市场优化', priority: '🔴 最高', action: '完成俄语版产品页面本地化，对接 Яндекс.Путешествия' },
+                        { name: '清真友好标签', priority: '🔴 最高', action: '建立 Halal Certified 体系，覆盖马/印/中东客群' },
+                        { name: '韩语效率产品', priority: '🟡 高', action: '2晚3天高强度打卡套票，入驻 Naver/Kakao Map' },
+                    ]
+                }
+            };
+        };
+
+        // --- Components ---
+
+        const Header = () => (
+            <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-ctrip-blue p-1.5 rounded-lg">
+                            <i data-lucide="globe" className="w-6 h-6 text-white"></i>
+                        </div>
+                        <h1 className="text-xl font-bold text-gray-900">入境游市场洞察系统</h1>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>数据源: Google Trends / TAC</span>
+                        <div className="h-4 w-px bg-gray-300"></div>
+                        <span>更新于: 2026-05-27</span>
+                    </div>
+                </div>
+            </header>
+        );
+
+        const Sidebar = ({ selectedSite, setSelectedSite, selectedCity, setSelectedCity }) => (
+            <div className="w-64 flex-shrink-0 bg-white border-r border-gray-200 h-[calc(100vh-64px)] overflow-y-auto p-6">
+                <div className="space-y-8">
+                    <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">重点监控站点</label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {SITES.map(site => (
+                                <button
+                                    key={site}
+                                    onClick={() => setSelectedSite(site)}
+                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                                        selectedSite === site 
+                                        ? 'bg-ctrip-blue text-white shadow-md' 
+                                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                    }`}
+                                >
+                                    {site}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">目标城市/省份</label>
+                        <select 
+                            value={selectedCity}
+                            onChange={(e) => setSelectedCity(e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-ctrip-blue outline-none"
+                        >
+                            {CITIES.map(city => <option key={city} value={city}>{city}</option>)}
+                        </select>
+                    </div>
+
+                    <div className="pt-8 border-t border-gray-100">
+                        <button className="w-full bg-brand-dark text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                            <i data-lucide="refresh-cw" className="w-4 h-4"></i>
+                            重新生成洞察
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const ReportView = ({ site, city, data }) => {
+            useEffect(() => {
+                lucide.createIcons();
+            }, [data]);
+
+            return (
+                <div className="flex-1 bg-gray-50 p-8 overflow-y-auto h-[calc(100vh-64px)]">
+                    <div className="max-w-4xl mx-auto space-y-8 bg-white p-12 shadow-card rounded-2xl border border-gray-100">
+                        {/* Report Header */}
+                        <div className="border-b-4 border-ctrip-blue pb-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h2 className="text-3xl font-black text-gray-900 mb-2">{city}入境游全球搜索热度穿透分析报告</h2>
+                                    <p className="text-gray-500 font-medium">站点维度: {site} | 统计区间: 2026年1月1日 — 2026年5月25日</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="inline-block bg-ctrip-blue text-white px-3 py-1 rounded text-xs font-bold uppercase mb-2">Internal Use Only</span>
+                                    <p className="text-xs text-gray-400">报告生成时间: {data.timestamp}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 01 Market Position */}
+                        <section className="report-section space-y-6">
+                            <div className="flex items-center gap-2 text-ctrip-blue">
+                                <span className="text-2xl font-black">01</span>
+                                <h3 className="text-xl font-bold">区域搜索热度排名 Market Position</h3>
+                            </div>
+                            
+                            <div className="grid grid-cols-4 gap-4">
+                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                    <p className="text-xs text-blue-600 font-bold mb-1">全球搜索热度 (SHI)</p>
+                                    <div className="flex items-end gap-2">
+                                        <span className="text-2xl font-black text-blue-900">{data.shi}/100</span>
+                                        <span className="text-xs text-green-600 font-bold mb-1">▲ {data.shiYoY}%</span>
+                                    </div>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <p className="text-xs text-gray-500 font-bold mb-1">境内目的地排名</p>
+                                    <span className="text-2xl font-black text-gray-900">#1</span>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <p className="text-xs text-gray-500 font-bold mb-1">亚太区排名</p>
+                                    <span className="text-2xl font-black text-gray-900">#3</span>
+                                </div>
+                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                    <p className="text-xs text-gray-500 font-bold mb-1">移动端占比</p>
+                                    <span className="text-2xl font-black text-gray-900">73.6%</span>
+                                </div>
+                            </div>
+
+                            <div className="overflow-hidden rounded-xl border border-gray-200">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 text-gray-500">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left font-bold">目的地</th>
+                                            <th className="px-4 py-3 text-left font-bold">SOV</th>
+                                            <th className="px-4 py-3 text-left font-bold">趋势</th>
+                                            <th className="px-4 py-3 text-left font-bold">核心竞争力标签</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {data.sov.map(item => (
+                                            <tr key={item.name} className="hover:bg-gray-50 transition-colors">
+                                                <td className="px-4 py-3 font-bold">{item.name}</td>
+                                                <td className="px-4 py-3">{item.value}%</td>
+                                                <td className="px-4 py-3 text-green-600 font-bold">▲ 稳定</td>
+                                                <td className="px-4 py-3 text-gray-500">{item.tags}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        {/* 02 Source Market Insights */}
+                        <section className="report-section space-y-6">
+                            <div className="flex items-center gap-2 text-ctrip-blue">
+                                <span className="text-2xl font-black">02</span>
+                                <h3 className="text-xl font-bold">客源画像探测 Source Market Insights</h3>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h4 className="font-bold text-gray-700">TOP 5 客源国排名</h4>
+                                    <div className="space-y-2">
+                                        {data.sourceMarkets.map((m, i) => (
+                                            <div key={m.country} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="w-6 h-6 bg-white rounded flex items-center justify-center text-xs font-bold border border-gray-200 shadow-sm">#{i+1}</span>
+                                                    <span className="font-bold">{m.country}</span>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-sm font-medium">{m.share}</span>
+                                                    <span className="text-xs text-green-600 font-bold">+{m.growth}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="bg-gray-900 rounded-2xl p-6 text-white">
+                                    <div className="flex items-center gap-2 mb-4 text-ctrip-orange">
+                                        <i data-lucide="zap" className="w-5 h-5"></i>
+                                        <h4 className="font-bold">关键洞察</h4>
+                                    </div>
+                                    <p className="text-sm leading-relaxed text-gray-300">
+                                        {city} SOV 同比微降 1.8pp，降幅来源于四川、广东两省的快速崛起；但{city}仍以绝对优势守住中国第一入境目的地地位，"首都效应"护城河稳固。
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 03 Intent & Activity */}
+                        <section className="report-section space-y-6">
+                            <div className="flex items-center gap-2 text-ctrip-blue">
+                                <span className="text-2xl font-black">03</span>
+                                <h3 className="text-xl font-bold">核心关联词与玩法识别 Intent & Activity</h3>
+                            </div>
+                            
+                            <div className="overflow-hidden rounded-xl border border-gray-200">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-gray-50 text-gray-500">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left font-bold">排名</th>
+                                            <th className="px-4 py-3 text-left font-bold">搜索词</th>
+                                            <th className="px-4 py-3 text-left font-bold">热度指数</th>
+                                            <th className="px-4 py-3 text-left font-bold">YoY</th>
+                                            <th className="px-4 py-3 text-left font-bold">分类</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {data.topKeywords.map((kw, i) => (
+                                            <tr key={kw.word}>
+                                                <td className="px-4 py-3 font-bold text-gray-400">#{i+1}</td>
+                                                <td className="px-4 py-3">
+                                                    <div className="font-bold text-gray-900">{kw.word}</div>
+                                                    <div className="text-xs text-gray-400 italic">{kw.translation}</div>
+                                                </td>
+                                                <td className="px-4 py-3 font-mono">{kw.index}</td>
+                                                <td className="px-4 py-3 text-green-600 font-bold">▲ {kw.yoy}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className="px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">{kw.type}</span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+
+                        {/* 04 Actionable Advice */}
+                        <section className="report-section space-y-6">
+                            <div className="flex items-center gap-2 text-ctrip-blue">
+                                <span className="text-2xl font-black">04</span>
+                                <h3 className="text-xl font-bold">业务落地建议 Actionable Advice</h3>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                                        <i data-lucide="calendar" className="w-4 h-4"></i>
+                                        预订高峰预测
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {data.actionableAdvice.peaks.map(peak => (
+                                            <div key={peak.name} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="font-bold text-gray-900">{peak.name}</span>
+                                                    <span className="text-xs font-bold text-ctrip-blue bg-blue-50 px-2 py-0.5 rounded">{peak.range}</span>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mb-1">驱动客源: {peak.drivers}</p>
+                                                <p className="text-xs font-bold text-ctrip-orange">建议备货: {peak.prep}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                                        <i data-lucide="trending-up" className="w-4 h-4"></i>
+                                        产品开发优先级
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {data.actionableAdvice.priorities.map(p => (
+                                            <div key={p.name} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${p.priority.includes('🔴') ? 'bg-red-50 text-red-600' : 'bg-yellow-50 text-yellow-600'}`}>
+                                                        {p.priority}
+                                                    </span>
+                                                    <span className="font-bold text-sm">{p.name}</span>
+                                                </div>
+                                                <p className="text-xs text-gray-600 leading-relaxed">{p.action}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Executive Summary */}
+                        <section className="report-section bg-gray-50 p-8 rounded-2xl border-2 border-dashed border-gray-200">
+                            <h3 className="text-xl font-black text-gray-900 mb-4">报告摘要 Executive Summary</h3>
+                            <p className="text-sm text-gray-600 leading-relaxed">
+                                {city} 2026 年入境游热度处于历史高位，但增长分布极度不均。俄罗斯与韩国构成增量主力，欧洲市场贡献高客单价，东南亚穆斯林市场是被严重低估的蓝海。搜索行为的核心转向已从"看景点"切换至"找体验"——胡同、长城小众段、四合院非遗、清真美食的爆发式增长是最强信号。OTA 景点玩乐业务的当务之急，是在俄语产品、清真友好标签、高铁延伸一日游三个维度完成快速供给填充。
+                            </p>
+                        </section>
+
+                        {/* Footer */}
+                        <div className="pt-8 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400 font-medium">
+                            <div className="flex items-center gap-4">
+                                <span>Report Compiled by: Inbound Tourism Intelligence System</span>
+                                <span>Powered by Google Trends</span>
+                            </div>
+                            <span>Page 1 of 1</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [selectedSite, setSelectedSite] = useState('US');
+            const [selectedCity, setSelectedCity] = useState('北京');
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(false);
+
+            const handleGenerate = () => {
+                setLoading(true);
+                // Simulate web scraping/processing
+                setTimeout(() => {
+                    setData(generateMockData(selectedSite, selectedCity));
+                    setLoading(false);
+                    setTimeout(() => lucide.createIcons(), 100);
+                }, 1500);
+            };
+
+            useEffect(() => {
+                handleGenerate();
+            }, [selectedSite, selectedCity]);
+
+            const handlePrint = () => {
+                window.print();
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col print:bg-white">
+                    <div className="print:hidden">
+                        <Header />
+                    </div>
+                    <div className="flex flex-1 overflow-hidden">
+                        <div className="print:hidden">
+                            <Sidebar 
+                                selectedSite={selectedSite} 
+                                setSelectedSite={setSelectedSite}
+                                selectedCity={selectedCity}
+                                setSelectedCity={setSelectedCity}
+                            />
+                        </div>
+                        
+                        {loading ? (
+                            <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
+                                <div className="w-16 h-16 border-4 border-ctrip-blue border-t-transparent rounded-full animate-spin mb-4"></div>
+                                <p className="text-gray-500 font-bold animate-pulse">正在从 Google Trends & TAC 采集实时洞察数据...</p>
+                                <div className="mt-8 grid grid-cols-3 gap-4 max-w-lg w-full px-4">
+                                    {['正在分析搜索词频...', '计算 SOV 竞争占比...', '识别客源偏好趋势...'].map((text, i) => (
+                                        <div key={i} className="bg-white p-3 rounded-lg border border-gray-200 text-[10px] text-gray-400">
+                                            {text}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex-1 relative overflow-y-auto bg-gray-50">
+                                <div className="absolute top-8 right-8 print:hidden">
+                                    <button 
+                                        onClick={handlePrint}
+                                        className="bg-white border border-gray-200 p-3 rounded-full shadow-sm hover:shadow-md transition-shadow text-gray-600"
+                                        title="导出 PDF 报告"
+                                    >
+                                        <i data-lucide="printer" className="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                                <ReportView site={selectedSite} city={selectedCity} data={data} />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
