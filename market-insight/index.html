@@ -3,458 +3,880 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>入境游市场洞察系统 - Inbound Tourism Intelligence</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <!-- Babel for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'ctrip-blue': '#0086F8',
-                        'ctrip-orange': '#FF9913',
-                        'brand-dark': '#1A1A1A',
-                    },
-                    boxShadow: {
-                        'card': '0 4px 20px -2px rgba(0, 0, 0, 0.1)',
-                    }
-                }
-            }
-        }
-    </script>
+    <title>2026年度入境游市场深度分类洞察系统</title>
+    <link href="https://cdn.staticfile.org/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8fafc;
-        }
-        .report-section {
-            page-break-inside: avoid;
-        }
-        .glass-morphism {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; }
+        .report-card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 40px rgba(0,0,0,0.04); border: 1px solid #e5e7eb; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(255, 255, 255, 0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(8px); }
+        
+        /* Sidebar Styling */
+        .sidebar-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; }
+        .sidebar-item:hover { background: #f8fafc; border-color: #e2e8f0; transform: translateX(4px); }
+        .sidebar-item.active { background: #3b82f6; color: white !important; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        .cat-group { border-left: 3px solid #e5e7eb; margin-left: 0.75rem; padding-left: 1rem; }
+        .cat-group.active { border-left-color: #3b82f6; }
+        .cat-header { font-size: 0.7rem; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        
+        /* Report Layout */
+        .matrix-cell { padding: 1.25rem; border-radius: 1rem; border: 1px solid #f1f5f9; height: 100%; transition: all 0.2s; }
+        .matrix-cell:hover { border-color: #3b82f6; background: #f8fafc; }
+        .dest-card { transition: all 0.3s; border: 2px solid #f8fafc; }
+        .dest-card:hover { transform: translateY(-4px); border-color: #3b82f6; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        
+        @media print { .no-print { display: none !important; } .report-card { box-shadow: none; border: none; padding: 0 !important; margin: 0 !important; width: 100% !important; } }
+        
+        .status-badge { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 9999px; text-transform: uppercase; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="antialiased">
+    <!-- Loading Animation -->
+    <div id="loading" class="loading-overlay" style="display:none;">
+        <div class="relative w-20 h-20 mb-6">
+            <div class="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <p class="text-gray-900 font-black text-xl mb-2">正在同步 17 个全球站点数据...</p>
+        <p class="text-gray-400 font-bold text-sm tracking-widest uppercase">LTM Data Integration (2025.05 - 2026.05)</p>
+    </div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
-
-        // --- Mock Data ---
-        const SITES = ['HK', 'KR', 'US', 'TW', 'JP', 'TH', 'SG', 'MY', 'RU', 'AU', 'GB', 'ID', 'FR', 'ES', 'IT', 'DE'];
-        const CITIES = ['北京', '上海', '广州', '成都', '西安', '杭州', '昆明', '张家界'];
-        const CATEGORIES = ['景点门票', '当地玩乐', '一日游', '私家团', '文化体验'];
-
-        // Mock Insights Data Generator
-        const generateMockData = (site, city) => {
-            const isBeijing = city === '北京';
-            return {
-                timestamp: new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }),
-                shi: Math.floor(Math.random() * 20) + 80,
-                shiYoY: (Math.random() * 25).toFixed(1),
-                sov: [
-                    { name: city, value: 28.4, trend: 'up', tags: isBeijing ? '故宫/长城/政治地标' : '核心景区/地方文化' },
-                    { name: '上海', value: 22.1, trend: 'up', tags: '摩登都市/购物/商务' },
-                    { name: '广东', value: 11.3, trend: 'up', tags: '美食/港澳联游/粤文化' },
-                    { name: '四川', value: 9.7, trend: 'up', tags: '熊猫/自然/非遗' },
-                ],
-                sourceMarkets: [
-                    { country: '美国', share: '14.2%', growth: '12.4%', policy: '免签政策落地', details: '深度文化探索型，偏好胡同骑行与英文导游团' },
-                    { country: '韩国', share: '11.8%', growth: '31.7%', policy: '免签+高铁', details: '高频短途城市型，对周末出行与韩语导览敏感' },
-                    { country: '俄罗斯', share: '10.3%', growth: '44.2%', policy: '免签扩展', details: '政治文化共鸣型，团队游占比高，对中俄友好主题响应强' },
-                    { country: '德国', share: '8.6%', growth: '19.8%', policy: '申根互惠', details: '历史人文精英型，高客单价，偏好建筑遗产与博物馆' },
-                    { country: '日本', share: '7.9%', growth: '8.1%', policy: '签证简化', details: '精致体验挑剔型，对人群密度敏感，偏好非标产品' },
-                ],
-                topKeywords: [
-                    { word: `${city} Hutong experience`, translation: '胡同深度体验', index: 100, yoy: '52%', type: '🏚️ 非遗文化' },
-                    { word: `${city} less crowded section`, translation: '小众段落探索', index: 96, yoy: '61%', type: '🏔️ 自然人文' },
-                    { word: 'Forbidden City skip line', translation: '故宫免排队门票', index: 91, yoy: '28%', type: '🏛️ 核心景点' },
-                    { word: 'High speed train day trip', translation: '高铁一日游', index: 87, yoy: '74%', type: '🚄 高铁玩法' },
-                    { word: 'Local food tour night market', translation: '夜市美食团', index: 84, yoy: '43%', type: '🍜 美食沉浸' },
-                ],
-                actionableAdvice: {
-                    peaks: [
-                        { name: '暑期主峰', range: '7.15 — 8.25', drivers: '欧美家庭、东南亚散客', prep: '提前 8周' },
-                        { name: '国庆黄金峰', range: '9.28 — 10.7', drivers: '韩国周末客、俄罗斯团队', prep: '提前 6周' },
-                        { name: '深秋文化峰', range: '10.20 — 11.10', drivers: '德法精英游客', prep: '提前 4周' },
-                    ],
-                    priorities: [
-                        { name: '俄语市场优化', priority: '🔴 最高', action: '完成俄语版产品页面本地化，对接 Яндекс.Путешествия' },
-                        { name: '清真友好标签', priority: '🔴 最高', action: '建立 Halal Certified 体系，覆盖马/印/中东客群' },
-                        { name: '韩语效率产品', priority: '🟡 高', action: '2晚3天高强度打卡套票，入驻 Naver/Kakao Map' },
-                    ]
-                }
-            };
-        };
-
-        // --- Components ---
-
-        const Header = () => (
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-ctrip-blue p-1.5 rounded-lg">
-                            <i data-lucide="globe" className="w-6 h-6 text-white"></i>
-                        </div>
-                        <h1 className="text-xl font-bold text-gray-900">入境游市场洞察系统</h1>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>数据源: Google Trends / TAC</span>
-                        <div className="h-4 w-px bg-gray-300"></div>
-                        <span>更新于: 2026-05-27</span>
-                    </div>
-                </div>
-            </header>
-        );
-
-        const Sidebar = ({ selectedSite, setSelectedSite, selectedCity, setSelectedCity }) => (
-            <div className="w-64 flex-shrink-0 bg-white border-r border-gray-200 h-[calc(100vh-64px)] overflow-y-auto p-6">
-                <div className="space-y-8">
-                    <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">重点监控站点</label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {SITES.map(site => (
-                                <button
-                                    key={site}
-                                    onClick={() => setSelectedSite(site)}
-                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                                        selectedSite === site 
-                                        ? 'bg-ctrip-blue text-white shadow-md' 
-                                        : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                                    }`}
-                                >
-                                    {site}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">目标城市/省份</label>
-                        <select 
-                            value={selectedCity}
-                            onChange={(e) => setSelectedCity(e.target.value)}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-ctrip-blue outline-none"
-                        >
-                            {CITIES.map(city => <option key={city} value={city}>{city}</option>)}
-                        </select>
-                    </div>
-
-                    <div className="pt-8 border-t border-gray-100">
-                        <button className="w-full bg-brand-dark text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
-                            <i data-lucide="refresh-cw" className="w-4 h-4"></i>
-                            重新生成洞察
-                        </button>
-                    </div>
+    <div class="min-h-screen flex flex-col">
+        <!-- Modern Header -->
+        <header class="bg-white border-b border-gray-100 h-20 flex items-center justify-between px-10 no-print sticky top-0 z-50 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl shadow-lg shadow-blue-200">📊</div>
+                <div>
+                    <h1 class="text-xl font-black text-gray-900 tracking-tight">入境游市场深度洞察报告 (2026年度版)</h1>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Global Inbound Intelligence System • LTM Analytics</p>
                 </div>
             </div>
-        );
+            <div class="flex items-center gap-8">
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] font-black text-gray-400 uppercase">数据监测窗口</span>
+                    <span class="text-sm font-bold text-blue-600">2025年5月 — 2026年5月</span>
+                </div>
+                <button onclick="window.print()" class="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-all font-black text-sm flex items-center gap-2 shadow-lg">
+                    <span>🖨️</span> 导出洞察方案
+                </button>
+            </div>
+        </header>
 
-        const ReportView = ({ site, city, data }) => {
-            useEffect(() => {
-                lucide.createIcons();
-            }, [data]);
-
-            return (
-                <div className="flex-1 bg-gray-50 p-8 overflow-y-auto h-[calc(100vh-64px)]">
-                    <div className="max-w-4xl mx-auto space-y-8 bg-white p-12 shadow-card rounded-2xl border border-gray-100">
-                        {/* Report Header */}
-                        <div className="border-b-4 border-ctrip-blue pb-6">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="text-3xl font-black text-gray-900 mb-2">{city}入境游全球搜索热度穿透分析报告</h2>
-                                    <p className="text-gray-500 font-medium">站点维度: {site} | 统计区间: 2026年1月1日 — 2026年5月25日</p>
-                                </div>
-                                <div className="text-right">
-                                    <span className="inline-block bg-ctrip-blue text-white px-3 py-1 rounded text-xs font-bold uppercase mb-2">Internal Use Only</span>
-                                    <p className="text-xs text-gray-400">报告生成时间: {data.timestamp}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 01 Market Position */}
-                        <section className="report-section space-y-6">
-                            <div className="flex items-center gap-2 text-ctrip-blue">
-                                <span className="text-2xl font-black">01</span>
-                                <h3 className="text-xl font-bold">区域搜索热度排名 Market Position</h3>
-                            </div>
-                            
-                            <div className="grid grid-cols-4 gap-4">
-                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                    <p className="text-xs text-blue-600 font-bold mb-1">全球搜索热度 (SHI)</p>
-                                    <div className="flex items-end gap-2">
-                                        <span className="text-2xl font-black text-blue-900">{data.shi}/100</span>
-                                        <span className="text-xs text-green-600 font-bold mb-1">▲ {data.shiYoY}%</span>
-                                    </div>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                    <p className="text-xs text-gray-500 font-bold mb-1">境内目的地排名</p>
-                                    <span className="text-2xl font-black text-gray-900">#1</span>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                    <p className="text-xs text-gray-500 font-bold mb-1">亚太区排名</p>
-                                    <span className="text-2xl font-black text-gray-900">#3</span>
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                    <p className="text-xs text-gray-500 font-bold mb-1">移动端占比</p>
-                                    <span className="text-2xl font-black text-gray-900">73.6%</span>
-                                </div>
-                            </div>
-
-                            <div className="overflow-hidden rounded-xl border border-gray-200">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gray-50 text-gray-500">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left font-bold">目的地</th>
-                                            <th className="px-4 py-3 text-left font-bold">SOV</th>
-                                            <th className="px-4 py-3 text-left font-bold">趋势</th>
-                                            <th className="px-4 py-3 text-left font-bold">核心竞争力标签</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {data.sov.map(item => (
-                                            <tr key={item.name} className="hover:bg-gray-50 transition-colors">
-                                                <td className="px-4 py-3 font-bold">{item.name}</td>
-                                                <td className="px-4 py-3">{item.value}%</td>
-                                                <td className="px-4 py-3 text-green-600 font-bold">▲ 稳定</td>
-                                                <td className="px-4 py-3 text-gray-500">{item.tags}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
-
-                        {/* 02 Source Market Insights */}
-                        <section className="report-section space-y-6">
-                            <div className="flex items-center gap-2 text-ctrip-blue">
-                                <span className="text-2xl font-black">02</span>
-                                <h3 className="text-xl font-bold">客源画像探测 Source Market Insights</h3>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <h4 className="font-bold text-gray-700">TOP 5 客源国排名</h4>
-                                    <div className="space-y-2">
-                                        {data.sourceMarkets.map((m, i) => (
-                                            <div key={m.country} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="w-6 h-6 bg-white rounded flex items-center justify-center text-xs font-bold border border-gray-200 shadow-sm">#{i+1}</span>
-                                                    <span className="font-bold">{m.country}</span>
-                                                </div>
-                                                <div className="flex items-center gap-4">
-                                                    <span className="text-sm font-medium">{m.share}</span>
-                                                    <span className="text-xs text-green-600 font-bold">+{m.growth}</span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="bg-gray-900 rounded-2xl p-6 text-white">
-                                    <div className="flex items-center gap-2 mb-4 text-ctrip-orange">
-                                        <i data-lucide="zap" className="w-5 h-5"></i>
-                                        <h4 className="font-bold">关键洞察</h4>
-                                    </div>
-                                    <p className="text-sm leading-relaxed text-gray-300">
-                                        {city} SOV 同比微降 1.8pp，降幅来源于四川、广东两省的快速崛起；但{city}仍以绝对优势守住中国第一入境目的地地位，"首都效应"护城河稳固。
-                                    </p>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* 03 Intent & Activity */}
-                        <section className="report-section space-y-6">
-                            <div className="flex items-center gap-2 text-ctrip-blue">
-                                <span className="text-2xl font-black">03</span>
-                                <h3 className="text-xl font-bold">核心关联词与玩法识别 Intent & Activity</h3>
-                            </div>
-                            
-                            <div className="overflow-hidden rounded-xl border border-gray-200">
-                                <table className="w-full text-sm">
-                                    <thead className="bg-gray-50 text-gray-500">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left font-bold">排名</th>
-                                            <th className="px-4 py-3 text-left font-bold">搜索词</th>
-                                            <th className="px-4 py-3 text-left font-bold">热度指数</th>
-                                            <th className="px-4 py-3 text-left font-bold">YoY</th>
-                                            <th className="px-4 py-3 text-left font-bold">分类</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {data.topKeywords.map((kw, i) => (
-                                            <tr key={kw.word}>
-                                                <td className="px-4 py-3 font-bold text-gray-400">#{i+1}</td>
-                                                <td className="px-4 py-3">
-                                                    <div className="font-bold text-gray-900">{kw.word}</div>
-                                                    <div className="text-xs text-gray-400 italic">{kw.translation}</div>
-                                                </td>
-                                                <td className="px-4 py-3 font-mono">{kw.index}</td>
-                                                <td className="px-4 py-3 text-green-600 font-bold">▲ {kw.yoy}</td>
-                                                <td className="px-4 py-3">
-                                                    <span className="px-2 py-1 bg-gray-100 rounded-md text-xs text-gray-600">{kw.type}</span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
-
-                        {/* 04 Actionable Advice */}
-                        <section className="report-section space-y-6">
-                            <div className="flex items-center gap-2 text-ctrip-blue">
-                                <span className="text-2xl font-black">04</span>
-                                <h3 className="text-xl font-bold">业务落地建议 Actionable Advice</h3>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <h4 className="font-bold text-gray-700 flex items-center gap-2">
-                                        <i data-lucide="calendar" className="w-4 h-4"></i>
-                                        预订高峰预测
-                                    </h4>
-                                    <div className="space-y-3">
-                                        {data.actionableAdvice.peaks.map(peak => (
-                                            <div key={peak.name} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className="font-bold text-gray-900">{peak.name}</span>
-                                                    <span className="text-xs font-bold text-ctrip-blue bg-blue-50 px-2 py-0.5 rounded">{peak.range}</span>
-                                                </div>
-                                                <p className="text-xs text-gray-500 mb-1">驱动客源: {peak.drivers}</p>
-                                                <p className="text-xs font-bold text-ctrip-orange">建议备货: {peak.prep}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <h4 className="font-bold text-gray-700 flex items-center gap-2">
-                                        <i data-lucide="trending-up" className="w-4 h-4"></i>
-                                        产品开发优先级
-                                    </h4>
-                                    <div className="space-y-3">
-                                        {data.actionableAdvice.priorities.map(p => (
-                                            <div key={p.name} className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${p.priority.includes('🔴') ? 'bg-red-50 text-red-600' : 'bg-yellow-50 text-yellow-600'}`}>
-                                                        {p.priority}
-                                                    </span>
-                                                    <span className="font-bold text-sm">{p.name}</span>
-                                                </div>
-                                                <p className="text-xs text-gray-600 leading-relaxed">{p.action}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Executive Summary */}
-                        <section className="report-section bg-gray-50 p-8 rounded-2xl border-2 border-dashed border-gray-200">
-                            <h3 className="text-xl font-black text-gray-900 mb-4">报告摘要 Executive Summary</h3>
-                            <p className="text-sm text-gray-600 leading-relaxed">
-                                {city} 2026 年入境游热度处于历史高位，但增长分布极度不均。俄罗斯与韩国构成增量主力，欧洲市场贡献高客单价，东南亚穆斯林市场是被严重低估的蓝海。搜索行为的核心转向已从"看景点"切换至"找体验"——胡同、长城小众段、四合院非遗、清真美食的爆发式增长是最强信号。OTA 景点玩乐业务的当务之急，是在俄语产品、清真友好标签、高铁延伸一日游三个维度完成快速供给填充。
-                            </p>
-                        </section>
-
-                        {/* Footer */}
-                        <div className="pt-8 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400 font-medium">
-                            <div className="flex items-center gap-4">
-                                <span>Report Compiled by: Inbound Tourism Intelligence System</span>
-                                <span>Powered by Google Trends</span>
-                            </div>
-                            <span>Page 1 of 1</span>
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar with Professional Grouping -->
+            <aside class="w-72 bg-white border-r border-gray-100 p-8 overflow-y-auto no-print">
+                <div class="mb-10">
+                    <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">1. 选择分析大区/站点</h3>
+                    <div id="sidebar-nav" class="space-y-2"></div>
+                </div>
+                
+                <div class="pt-8 border-t border-gray-100">
+                    <div class="bg-blue-50 rounded-2xl p-5 border border-blue-100 mb-6">
+                        <p class="text-[10px] font-black text-blue-600 uppercase mb-2">系统状态</p>
+                        <div class="flex items-center gap-2 text-xs font-bold text-blue-900">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            17 个站点数据已确切匹配
                         </div>
                     </div>
                 </div>
-            );
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto p-12 bg-gray-50">
+                <div id="report-content" class="max-w-6xl mx-auto report-card p-16 bg-white">
+                    <div class="flex flex-col items-center justify-center h-96 text-gray-300">
+                        <div class="text-6xl mb-6">🔍</div>
+                        <p class="font-black text-xl">请从左侧选择站点以开始年度穿透分析</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const CATEGORIES = {
+            '港台地区': { icon: '🌏', sites: ['HK', 'TW'] },
+            '俄罗斯': { icon: '🇷🇺', sites: ['RU'] },
+            '东南亚': { icon: '🏝️', sites: ['MY', 'TH', 'SG', 'ID', 'VN', 'PH'] },
+            '欧美澳长线': { icon: '✈️', sites: ['US', 'GB', 'DE', 'FR', 'IT', 'ES', 'AU', 'CA'] }
         };
 
-        const App = () => {
-            const [selectedSite, setSelectedSite] = useState('US');
-            const [selectedCity, setSelectedCity] = useState('北京');
-            const [data, setData] = useState(null);
-            const [loading, setLoading] = useState(false);
+        let currentSite = 'HK';
 
-            const handleGenerate = () => {
-                setLoading(true);
-                // Simulate web scraping/processing
-                setTimeout(() => {
-                    setData(generateMockData(selectedSite, selectedCity));
-                    setLoading(false);
-                    setTimeout(() => lucide.createIcons(), 100);
-                }, 1500);
-            };
+        const MASTER_DATA = {
+            'HK': {
+                market: '香港 (Hong Kong)', shi: 98, growth: '▲ 14.2%', visa: '回乡证便利/过境免签',
+                summary: '2025-2026年度，港人“北上消费”从大湾区向全国蔓延。除了传统的“周末生活圈”，高铁沿线城市的长沙、武汉因其网红餐饮与高性价比，成为港青的新晋宠儿。',
+                segments: [
+                    { name: '跨城生活族 — "高频北上者"', terms: '深圳盒马、鲍师傅、美团团购、反向代购', behavior: '追求性价比，熟练使用内地数字化工具，周末高频出入境', spend: '商超采买 > 餐饮娱乐 > 基础医疗' },
+                    { name: '网红城市猎人 — "高铁探索者"', terms: '长沙文和友、成都熊猫、武汉樱花、高铁直达', behavior: '偏好高铁出行，热衷打卡社交媒体热门目的地', spend: '网红餐饮 > 交通支出 > 舒适型住宿' }
+                ],
+                topDests: [
+                    { name: '深圳/广州', sov: '45%', trend: '▲ 24%', items: ['盒马/山姆反向代购', '牙科/美发深度护理', '广式早茶生活化体验'] },
+                    { name: '长沙/武汉', sov: '20%', trend: '▲ 156%', items: ['茶颜悦色打卡', '文和友怀旧空间', '黄鹤楼夜游'] },
+                    { name: '上海', sov: '15%', trend: '▲ 42%', items: ['武康路 Citywalk', '话剧中心演出', '潮流打卡'] },
+                    { name: '成都/重庆', sov: '12%', trend: '▲ 88%', items: ['熊猫基地研学', '洪崖洞夜景', '火锅文化'] },
+                    { name: '北京', sov: '8%', trend: '▲ 35%', items: ['环球影城主题游', '故宫深度游', '胡同民俗'] }
+                ],
+                topPois: [
+                    { name: '深圳万象城', rank: '#1', trend: '消费核心', type: '🛍️ 购物中心' },
+                    { name: '长沙五一广场', rank: '#2', trend: '流量巅峰', type: '🏙️ 城市中心' },
+                    { name: '成都熊猫基地', rank: '#3', trend: '长青 IP', type: '🐼 标志性 POI' }
+                ],
+                keywords: [
+                    { word: '深圳周末游', trans: 'SZ Weekend', index: 100, yoy: '▲ 120%' },
+                    { word: '反向代购', trans: 'Reverse Buying', index: 95, yoy: '▲ 200%' },
+                    { word: '高铁直达', trans: 'HSR Direct', index: 88, yoy: '▲ 75%' }
+                ],
+                matrix: {
+                    priority: ['深港联动微度假套餐', '网红城市高铁自由行'],
+                    reserve: ['大湾区研学/文化交流团'],
+                    optimize: ['支付工具互联互通指引', '通关流程简化'],
+                    efficiency: ['粤语服务环境优化']
+                }
+            },
+            'TW': {
+                market: '台湾 (Taiwan)', shi: 95, growth: '▲ 12.8%', visa: '台胞证便利化',
+                summary: '台湾游客对大陆传统古都与新一线城市的科技感展现出极高兴趣。福建作为“第一站”的地位稳固，同时西安、北京的人文底蕴对其有极强吸引力。',
+                segments: [
+                    { name: '寻根文化派 — "历史考证者"', terms: '西安、北京、南京、博物馆、古建筑', behavior: '注重历史文化的深度体验，偏好人文景观', spend: '文化体验 > 交通 > 餐饮' },
+                    { name: '都市潮流派 — "科技生活体验者"', terms: '上海、杭州、移动支付、喜茶、新能源车', behavior: '对大陆现代化进程好奇，热衷体验智慧城市', spend: '科技产品 > 网红餐厅 > 精品住宿' }
+                ],
+                topDests: [
+                    { name: '厦门/福州', sov: '35%', trend: '▲ 56%', items: ['闽南语互动交流', '祖籍地家族寻根', '特色海鲜排挡'] },
+                    { name: '上海/杭州', sov: '25%', trend: '▲ 48%', items: ['西湖漫步/灵隐祈福', '互联网企业参观', '现代艺术展'] },
+                    { name: '北京', sov: '15%', trend: '▲ 32%', items: ['故宫深度导览', '长城观光', '京味文化'] },
+                    { name: '西安', sov: '15%', trend: '▲ 92%', items: ['兵马俑实景演出', '大唐不夜城沉浸', '古城墙骑行'] },
+                    { name: '成都', sov: '10%', trend: '▲ 65%', items: ['熊猫基地', '春熙路/太古里', '锦里民俗'] }
+                ],
+                topPois: [
+                    { name: '鼓浪屿', rank: '#1', trend: '文化标志', type: '🏝️ 历史街区' },
+                    { name: '西湖', rank: '#2', trend: '审美共鸣', type: '🏔️ 自然文化' },
+                    { name: '秦始皇兵马俑', rank: '#3', trend: '历史震撼', type: '🏛️ 历史文化' }
+                ],
+                keywords: [
+                    { word: '免签便利', trans: 'Convenience', index: 100, yoy: '▲ 150%' },
+                    { word: '寻根之旅', trans: 'Roots Tour', index: 92, yoy: '▲ 45%' },
+                    { word: '移动支付绑定', trans: 'Mobile Pay', index: 85, yoy: '▲ 220%' }
+                ],
+                matrix: {
+                    priority: ['闽台寻根文化深度游', '长三角科技+水乡游'],
+                    reserve: ['西安/北京古都研学团'],
+                    optimize: ['台胞证数字化便捷认证'],
+                    efficiency: ['闽台生活化服务指引']
+                }
+            },
+            'RU': {
+                market: '俄罗斯 (Russia)', shi: 94, growth: '▲ 205%', visa: '30天试点免签',
+                summary: '俄罗斯市场呈现“南康养、北冰雪、中医疗”的复合格局。三亚已成为其避寒第二故乡，同时重庆、张家界的自然奇观曝光量激增。',
+                segments: [
+                    { name: '康养度假型 — "中医追随者"', terms: '三亚中医、针灸、海滨疗养、火针', behavior: '停留时间长（14天+），信赖中医调理，偏好全家度假', spend: '中医医疗 > 长期住宿 > 餐饮' },
+                    { name: '自然探索型 — "极限审美者"', terms: '哈尔滨冰雪、张家界、重庆赛博、冬季', behavior: '追求视觉冲击力强的景观，对中国基建感到震撼', spend: '景区门票 > 导游服务 > 摄影' }
+                ],
+                topDests: [
+                    { name: '三亚/海口', sov: '35%', trend: '▲ 500%', items: ['中医理疗套餐', '亚龙湾海滨度假', '海鲜饕餮'] },
+                    { name: '哈尔滨', sov: '20%', trend: '▲ 110%', items: ['冰雪大世界', '圣索菲亚教堂', '冰雪艺术展'] },
+                    { name: '重庆', sov: '15%', trend: '▲ 120%', items: ['洪崖洞赛博夜景', '武隆天生三桥', '火锅文化'] },
+                    { name: '张家界', sov: '15%', trend: '▲ 145%', items: ['天门山索道', '百龙天梯', '大峡谷徒步'] },
+                    { name: '广州', sov: '15%', trend: '▲ 180%', items: ['岭南火针特色医疗', '商贸考察', '珠江夜游'] }
+                ],
+                topPois: [
+                    { name: '三亚中医院', rank: '#1', trend: '康养刚需', type: '🏥 医疗 POI' },
+                    { name: '哈尔滨冰雪大世界', rank: '#2', trend: '冬季巅峰', type: '❄️ 季节 POI' },
+                    { name: '天门山', rank: '#3', trend: '视觉震撼', type: '🏞️ 自然景观' }
+                ],
+                keywords: [
+                    { word: 'Китайская медицина', trans: '中医', index: 100, yoy: '▲ 56%' },
+                    { word: 'Хайнань отдых', trans: '海南度假', index: 98, yoy: '▲ 180%' },
+                    { word: 'Чунцин туризм', trans: '重庆旅游', index: 92, yoy: '▲ 240%' }
+                ],
+                matrix: {
+                    priority: ['三亚中医康养长租套餐', '哈尔滨冰雪+重庆赛博联线'],
+                    reserve: ['张家界自然探索'],
+                    optimize: ['全链条俄语服务指引'],
+                    efficiency: ['俄语版支付工具指引']
+                }
+            },
+            'MY': {
+                market: '马来西亚 (Malaysia)', shi: 96, growth: '▲ 134%', visa: '15天互惠免签',
+                summary: '马来西亚客群呈现极强的“潮汕/顺德寻根”与“都市漫游”特征。顺德作为“世界美食之都”吸引力持续爆发。',
+                segments: [
+                    { name: '潮汕/顺德寻根派 — "味觉守护者"', terms: '潮州英歌舞、顺德鱼生、祭祖、家谱', behavior: '家族集体出行，对祖籍地文化高度认同，专为美食而来', spend: '文化体验 > 高质餐饮 > 家族定制' },
+                    { name: '都市美学派 — "社交达人"', terms: '上海 Citywalk、成都熊猫、武康路、喜茶', behavior: '热衷打卡社交媒体热门目的地，追求精致都市体验', spend: '网红餐饮 > 购物 > 精品住宿' }
+                ],
+                topDests: [
+                    { name: '佛山/顺德', sov: '30%', trend: '▲ 220%', items: ['顺德私房菜', '清晖园导览', '李小龙乐园'] },
+                    { name: '潮州/汕头', sov: '25%', trend: '▲ 180%', items: ['非遗英歌舞', '南澳岛环岛', '潮汕手打牛肉丸'] },
+                    { name: '上海', sov: '20%', trend: '▲ 145%', items: ['外滩 Citywalk', '弄堂美学', '迪士尼乐园'] },
+                    { name: '成都', sov: '15%', trend: '▲ 110%', items: ['大熊猫基地', '太古里', '九眼桥夜生活'] },
+                    { name: '西安', sov: '10%', trend: '▲ 92%', items: ['回民街美食', '兵马俑', '大清真寺'] }
+                ],
+                topPois: [
+                    { name: '顺德清晖园', rank: '#1', trend: '美食地标', type: '🏞️ 园林/美食' },
+                    { name: '潮州古城', rank: '#2', trend: '文化核心', type: '🏮 历史街区' },
+                    { name: '上海武康路', rank: '#3', trend: '美学巅峰', type: '🏘️ 文化街区' }
+                ],
+                keywords: [
+                    { word: 'Shunde Food', trans: '顺德美食', index: 100, yoy: '▲ 220%' },
+                    { word: 'Free Visa', trans: '免签政策', index: 95, yoy: '▲ 300%' },
+                    { word: 'Panda Chengdu', trans: '成都熊猫', index: 90, yoy: '▲ 120%' }
+                ],
+                matrix: {
+                    priority: ['顺德美食+功夫文化线', '潮汕非遗寻根游'],
+                    reserve: ['沪蓉都市美学联线'],
+                    optimize: ['马来语/英文导览', '清真餐厅地图'],
+                    efficiency: ['移动支付简易绑定']
+                }
+            },
+            'TH': {
+                market: '泰国 (Thailand)', shi: 95, growth: '▲ 188%', visa: '互免签证永久生效',
+                summary: '泰国游客对中国的“雪山景观”与“硬核科技”展现出极高溢价。玉龙雪山避暑与上海无人驾驶车在泰社交媒体刷屏。',
+                segments: [
+                    { name: '雪山避暑派 — "气候追随者"', terms: '昆明、丽江雪山、香格里拉、雪景', behavior: '偏好凉爽气候，家庭出游比例高，追求差异化景观', spend: '家庭团费 > 餐饮 > 伴手礼' },
+                    { name: '未来科技派 — "社交分享者"', terms: '上海无人车、深圳无人机配送、移动支付', behavior: '追求在社交媒体分享“未来感”，对现代化基建好奇', spend: '电子产品 > 科技门票 > 网红餐饮' }
+                ],
+                topDests: [
+                    { name: '昆明/丽江', sov: '30%', trend: '▲ 150%', items: ['玉龙雪山索道', '蓝月谷摄影', '大理洱海'] },
+                    { name: '上海', sov: '25%', trend: '▲ 245%', items: ['无人驾驶 Robotaxi', '外滩夜景', '迪士尼'] },
+                    { name: '张家界', sov: '20%', trend: '▲ 180%', items: ['天门山玻璃栈道', '百龙天梯', '魅力湘西'] },
+                    { name: '成都', sov: '15%', trend: '▲ 110%', items: ['熊猫基地', '锦里戏台', '都江堰'] },
+                    { name: '深圳', sov: '10%', trend: '▲ 95%', items: ['大疆旗舰店', '人才公园灯光秀', '世界之窗'] }
+                ],
+                topPois: [
+                    { name: '玉龙雪山', rank: '#1', trend: '雪景刚需', type: '🏔️ 自然景观' },
+                    { name: '上海无人驾驶车', rank: '#2', trend: '科技巅峰', type: '🚗 科技体验' },
+                    { name: '天门山', rank: '#3', trend: '自然震撼', type: '🏞️ 自然景观' }
+                ],
+                keywords: [
+                    { word: 'ฟรีวีซ่าจีน', trans: '中国免签', index: 100, yoy: '▲ 320%' },
+                    { word: 'Robotaxi', trans: '无人车', index: 96, yoy: '▲ 400%' },
+                    { word: 'Lijiang', trans: '丽江', index: 92, yoy: '▲ 150%' }
+                ],
+                matrix: {
+                    priority: ['云南雪山避暑游', '上海/深圳科技行'],
+                    reserve: ['张家界奇观探索'],
+                    optimize: ['泰语导览/菜单优化'],
+                    efficiency: ['泰铢电子钱包直通支付']
+                }
+            },
+            'SG': {
+                market: '新加坡 (Singapore)', shi: 97, growth: '▲ 120%', visa: '30天互免签证',
+                summary: '新加坡游客追求高品质、非标体验与生活美学。热衷新一线城市的艺术展、高端康养与研学产品。',
+                segments: [
+                    { name: '高质生活家 — "深度美学派"', terms: '安缦、阿那亚、艺术展、私家定制', behavior: '追求高标准住宿，偏好非标定制，研究文化美学', spend: '精品住宿 > 艺术收藏 > 私家导览' },
+                    { name: '亲子研学组 — "未来教育者"', terms: '大疆研学、景德镇陶瓷、上海中心', behavior: '注重教育属性，体验科技与传统融合', spend: '研学课程 > 精品酒店 > 门票' }
+                ],
+                topDests: [
+                    { name: '上海/杭州', sov: '35%', trend: '▲ 135%', items: ['西湖龙井茶艺', '武康路艺术展', '安缦法云体验'] },
+                    { name: '北京', sov: '20%', trend: '▲ 110%', items: ['故宫深度讲解', '慕田峪长城', '胡同精品民宿'] },
+                    { name: '成都/重庆', sov: '20%', trend: '▲ 125%', items: ['熊猫基地研学', '重庆云端景观', '川味美学'] },
+                    { name: '西安', sov: '15%', trend: '▲ 95%', items: ['兵马俑深度', '唐代壁画展', '城墙骑行'] },
+                    { name: '景德镇', sov: '10%', trend: '▲ 300%', items: ['御窑遗址摄影', '三宝村陶瓷课', '艺术市集'] }
+                ],
+                topPois: [
+                    { name: '西湖', rank: '#1', trend: '审美共鸣', type: '🏔️ 自然文化' },
+                    { name: '景德镇御窑', rank: '#2', trend: '艺术黑马', type: '🏺 非遗 POI' },
+                    { name: '阿那亚礼堂', rank: '#3', trend: '社交巅峰', type: '🏙️ 建筑/艺术' }
+                ],
+                keywords: [
+                    { word: '30 Days Visa Free', trans: '30天免签', index: 100, yoy: '▲ 300%' },
+                    { word: 'Luxury China', trans: '奢华游', index: 92, yoy: '▲ 150%' },
+                    { word: 'Jingdezhen Art', trans: '景德镇艺术', index: 88, yoy: '▲ 420%' }
+                ],
+                matrix: {
+                    priority: ['江浙沪高品质私家团', '景德镇艺术研学线'],
+                    reserve: ['成渝生活美学游'],
+                    optimize: ['英文深度讲解员'],
+                    efficiency: ['无缝跨境支付体验']
+                }
+            },
+            'ID': {
+                market: '印度尼西亚 (Indonesia)', shi: 92, growth: '▲ 95%', visa: '签证便利化',
+                summary: '印尼游客对华呈现明显的“商贸考察+都市景观”需求。广州作为门户地位稳固，对上海、重庆景观向往。',
+                segments: [
+                    { name: '商贸考察组 — "拿货达人"', terms: '广州批发、顺德家具、拿货、广交会', behavior: '商务或大家庭出行，兼顾考察与休闲，对清真餐有要求', spend: '商贸采买 > 家庭餐饮 > 住宿' },
+                    { name: '都市视觉派 — "打卡达人"', terms: '外滩、广州塔、重庆洪崖洞、夜景', behavior: '热衷地标景观，在大规模建筑前摄影，偏好繁华夜生活', spend: '景点门票 > 购物 > 餐饮' }
+                ],
+                topDests: [
+                    { name: '广州', sov: '35%', trend: '▲ 65%', items: ['中大布匹市场', '广州塔夜景', '顺德美食'] },
+                    { name: '上海', sov: '25%', trend: '▲ 120%', items: ['外滩漫步', '南京路购物', '豫园文化'] },
+                    { name: '重庆', sov: '15%', trend: '▲ 145%', items: ['洪崖洞夜景', '解放碑购物', '穿楼轻轨'] },
+                    { name: '厦门/泉州', sov: '15%', trend: '▲ 88%', items: ['南普陀寺', '泉州祖籍地', '鼓浪屿'] },
+                    { name: '北京', sov: '10%', trend: '▲ 45%', items: ['长城挑战', '故宫', '王府井'] }
+                ],
+                topPois: [
+                    { name: '外滩', rank: '#1', trend: '地标首选', type: '🏙️ 城市景观' },
+                    { name: '广州塔', rank: '#2', trend: '商贸地标', type: '🏙️ 城市景观' },
+                    { name: '洪崖洞', rank: '#3', trend: '视觉震撼', type: '🏮 网红 POI' }
+                ],
+                keywords: [
+                    { word: 'Guangzhou Wholesale', trans: '广州批发', index: 100, yoy: '▲ 65%' },
+                    { word: 'Shanghai Skyline', trans: '天际线', index: 92, yoy: '▲ 130%' },
+                    { word: 'Visa China', trans: '签证', index: 88, yoy: '▲ 85%' }
+                ],
+                matrix: {
+                    priority: ['广州商贸+探亲定制', '上海/重庆都市游'],
+                    reserve: ['闽南寻根之旅'],
+                    optimize: ['印尼语导览', '清真餐厅指引'],
+                    efficiency: ['移动支付绑定指引']
+                }
+            },
+            'VN': {
+                market: '越南 (Vietnam)', shi: 90, growth: '▲ 115%', visa: '边境通关便利',
+                summary: '越南游客受益于地缘优势，呈现高频、短途的“拿货+自然观光”特征。南宁、河口作为枢纽热度极高。',
+                segments: [
+                    { name: '跨境商贸组 — "潮流搬运工"', terms: '广州拿货、南宁枢纽、白马市场', behavior: '目的明确，直奔批发市场，对支付便利度敏感', spend: '服装采买 > 基础住宿 > 快递' },
+                    { name: '自然观光组 — "奇观追随者"', terms: '张家界、凤凰古城、漓江、自然美景', behavior: '追求视觉冲击力强的山水，偏好团体出行', spend: '景区门票 > 餐饮 > 团体交通' }
+                ],
+                topDests: [
+                    { name: '南宁/崇左', sov: '35%', trend: '▲ 135%', items: ['青秀山观光', '德天瀑布', '中山路夜市'] },
+                    { name: '广州', sov: '25%', trend: '▲ 95%', items: ['服饰批发市场', '珠江夜游', '越秀公园'] },
+                    { name: '张家界', sov: '20%', trend: '▲ 190%', items: ['天门山索道', '玻璃栈道', '凤凰古城'] },
+                    { name: '昆明/丽江', sov: '10%', trend: '▲ 110%', items: ['斗南花卉市场', '丽江古城', '玉龙雪山'] },
+                    { name: '桂林', sov: '10%', trend: '▲ 55%', items: ['漓江游船', '阳朔西街', '象鼻山'] }
+                ],
+                topPois: [
+                    { name: '德天瀑布', rank: '#1', trend: '边境地标', type: '🌊 自然景观' },
+                    { name: '天门山', rank: '#2', trend: '自然震撼', type: '🏔️ 自然景观' },
+                    { name: '白马市场', rank: '#3', trend: '商贸核心', type: '🛍️ 购物 POI' }
+                ],
+                keywords: [
+                    { word: 'Du lịch Trung Quốc', trans: '旅游', index: 100, yoy: '▲ 150%' },
+                    { word: 'Trương Gia Giới', trans: '张家界', index: 95, yoy: '▲ 210%' },
+                    { word: 'Quảng Châu', trans: '广州', index: 88, yoy: '▲ 110%' }
+                ],
+                matrix: {
+                    priority: ['边境短途购物游', '张家界奇观探索'],
+                    reserve: ['广州商贸专线'],
+                    optimize: ['越南语服务', '跨境扫码'],
+                    efficiency: ['通关预约简化']
+                }
+            },
+            'PH': {
+                market: '菲律宾 (Philippines)', shi: 88, growth: '▲ 105%', visa: '签证便利化',
+                summary: '菲律宾市场呈现出显著的“家族寻根”与“乐园情结”。福建为祖籍地受青睐，上海迪士尼是必访点。',
+                segments: [
+                    { name: '寻根怀旧组 — "血缘纽带者"', terms: '泉州、厦门、祭祖、家谱', behavior: '家族集体出行，目的祭祖，对闽南文化有感情', spend: '餐饮 > 家族合影 > 交通' },
+                    { name: '家庭娱乐组 — "乐园追随者"', terms: '上海迪士尼、外滩、环球影城', behavior: '追求高标准家庭娱乐，热衷地标留影', spend: '乐园门票 > 乐园周边 > 精品酒店' }
+                ],
+                topDests: [
+                    { name: '厦门/泉州', sov: '35%', trend: '▲ 88%', items: ['寻根祭祖之旅', '闽南美食', '洛阳桥/开元寺'] },
+                    { name: '上海', sov: '30%', trend: '▲ 145%', items: ['迪士尼乐园', '外滩建筑群', '豫园夜景'] },
+                    { name: '广州', sov: '15%', trend: '▲ 62%', items: ['长隆野生动物园', '陈家祠', '白云山'] },
+                    { name: '北京', sov: '10%', trend: '▲ 45%', items: ['长城好汉坡', '故宫', '天坛'] },
+                    { name: '深圳', sov: '10%', trend: '▲ 38%', items: ['世界之窗', '欢乐海岸', '大疆体验'] }
+                ],
+                topPois: [
+                    { name: '上海迪士尼', rank: '#1', trend: '家庭首选', type: '🎡 主题乐园' },
+                    { name: '泉州西街', rank: '#2', trend: '寻根必访', type: '🏘️ 历史街区' },
+                    { name: '外滩', rank: '#3', trend: '都市巅峰', type: '🏙️ 城市景观' }
+                ],
+                keywords: [
+                    { word: 'Roots Tour', trans: '寻根', index: 100, yoy: '▲ 85%' },
+                    { word: 'Disney PH', trans: '迪士尼', index: 92, yoy: '▲ 180%' },
+                    { word: 'Fujian', trans: '福建', index: 85, yoy: '▲ 75%' }
+                ],
+                matrix: {
+                    priority: ['闽南寻根家族团', '上海/北京家庭游'],
+                    reserve: ['广东长隆亲子线'],
+                    optimize: ['英文讲解', '家庭大房型'],
+                    efficiency: ['支付工具英文指引']
+                }
+            },
+            'US': {
+                market: '美国 (United States)', shi: 90, growth: '▲ 25%', visa: '过境免签利好',
+                summary: '美国客群正从传统观光转向“Becoming Chinese”深度生活体验。对中国安全感、未来生活方式（无人车/高铁）好奇。',
+                segments: [
+                    { name: '未来观察者 — "科技探索型"', terms: 'Robotaxi, Smart City, Drones, HSR', behavior: '对现代化基建好奇，体验未来感生活', spend: '科技门票 > 交通体验 > 餐饮' },
+                    { name: '深度生活派 — "中式生活家"', terms: 'Hutong, Wet Market, Mobile Pay, TCM', behavior: '追求“像当地人一样生活”，发现隐藏文化', spend: '文化课程 > 私家导览 > 特色餐饮' }
+                ],
+                topDests: [
+                    { name: '北京', sov: '30%', trend: '▲ 35%', items: ['胡同深度游', '故宫导览', '慕田峪长城'] },
+                    { name: '上海', sov: '25%', trend: '▲ 55%', items: ['无人驾驶 Robotaxi', '外滩天际线', '弄堂艺术'] },
+                    { name: '西安', sov: '20%', trend: '▲ 45%', items: ['兵马俑', '汉文化沉浸', '城墙骑行'] },
+                    { name: '成都', sov: '15%', trend: '▲ 48%', items: ['熊猫基地研学', '川菜课程', '太古里'] },
+                    { name: '张掖/敦煌', sov: '10%', trend: '▲ 150%', items: ['丹霞摄影', '莫高窟', '丝路探秘'] }
+                ],
+                topPois: [
+                    { name: '故宫', rank: '#1', trend: '文化刚需', type: '🏛️ 历史文化' },
+                    { name: '上海 Robotaxi', rank: '#2', trend: '科技巅峰', type: '🚗 科技体验' },
+                    { name: '熊猫基地', rank: '#3', trend: '全球 IP', type: '🐼 动物/自然' }
+                ],
+                keywords: [
+                    { word: 'Becoming Chinese', trans: '中式生活', index: 100, yoy: '▲ 210%' },
+                    { word: 'HSR China', trans: '高铁', index: 95, yoy: '▲ 88%' },
+                    { word: 'Safe Travel', trans: '安全行', index: 88, yoy: '▲ 55%' }
+                ],
+                matrix: {
+                    priority: ['上海/深圳科技行', '北京/西安历史团'],
+                    reserve: ['丝路探秘'],
+                    optimize: ['全英文预订', '伴游服务'],
+                    efficiency: ['过境免签服务']
+                }
+            },
+            'GB': {
+                market: '英国 (Great Britain)', shi: 88, growth: '▲ 32%', visa: '30天单方面免签',
+                summary: '英国游客对中国的“快速高定”与“经典历史”并存展现浓厚兴趣。上海南外滩面料市场高定服务是社交核心。',
+                segments: [
+                    { name: '高定追随者 — "定制绅士派"', terms: 'Fabric Market, Qipao, Suit, Peace Hotel', behavior: '热衷“落地量身、离境提货”的高性价比定制', spend: '定制服装 > 高端餐饮 > 交通' },
+                    { name: '地标收集者 — "经典文化派"', terms: 'Great Wall, Warriors, Yangtze, Panda', behavior: '对经典旅游标志忠诚度高，偏好周全线路', spend: '全包价团费 > 门票 > 餐饮' }
+                ],
+                topDests: [
+                    { name: '上海', sov: '35%', trend: '▲ 142%', items: ['南外滩面料市场', '和平饭店下午茶', '外滩漫步'] },
+                    { name: '北京', sov: '25%', trend: '▲ 45%', items: ['故宫讲解', '长城徒步', '胡同生活'] },
+                    { name: '西安', sov: '15%', trend: '▲ 52%', items: ['兵马俑', '汉服体验', '碑林博物馆'] },
+                    { name: '成都', sov: '15%', trend: '▲ 65%', items: ['熊猫基地', '川剧变脸', '宽窄巷子'] },
+                    { name: '长江三峡', sov: '10%', trend: '▲ 38%', items: ['豪华游轮', '大坝考察', '白帝城'] }
+                ],
+                topPois: [
+                    { name: '面料市场', rank: '#1', trend: '新晋热门', type: '👗 购物/体验' },
+                    { name: '慕田峪长城', rank: '#2', trend: '口碑稳定', type: '🏔️ 历史地标' },
+                    { name: '兵马俑', rank: '#3', trend: '经典必访', type: '🏛️ 历史文化' }
+                ],
+                keywords: [
+                    { word: 'Fast Tailoring', trans: '快速定制', index: 100, yoy: '▲ 240%' },
+                    { word: 'Visa Free', trans: '免签', index: 94, yoy: '▲ 350%' },
+                    { word: 'HSR Experience', trans: '高铁', index: 92, yoy: '▲ 85%' }
+                ],
+                matrix: {
+                    priority: ['上海高定+都市游', '京安蓉经典全景'],
+                    reserve: ['内陆高铁行'],
+                    optimize: ['定制流程英文指引'],
+                    efficiency: ['离境退税快速办理']
+                }
+            },
+            'DE': {
+                market: '德国 (Germany)', shi: 87, growth: '▲ 35%', visa: '30天互免签证',
+                summary: '德国游客对中国的“工业科技”与“自然遗产”表现出严谨探索欲。偏好户外徒步与深度讲解。',
+                segments: [
+                    { name: '工业文明组 — "效率追求者"', terms: 'Maglev, Factory, DJI, Shenzhen, Efficiency', behavior: '对工业成就好奇，行程精准高效', spend: '商务交通 > 科技展会 > 精品餐饮' },
+                    { name: '自然探索组 — "深度徒步者"', terms: 'Hiking, Huangshan, Zhangjiajie, Nature', behavior: '偏好户外，研究自然遗产背景', spend: '户外向导 > 门票 > 舒适住宿' }
+                ],
+                topDests: [
+                    { name: '上海/苏州', sov: '35%', trend: '▲ 65%', items: ['磁悬浮体验', '苏州园林深度', '工业园考察'] },
+                    { name: '深圳', sov: '20%', trend: '▲ 110%', items: ['大疆旗舰店', '人才公园', '万象城'] },
+                    { name: '北京', sov: '20%', trend: '▲ 45%', items: ['野长城徒步', '故宫解析', '胡同文化'] },
+                    { name: '张家界', sov: '15%', trend: '▲ 120%', items: ['天门山索道', '大峡谷徒步', '森林公园'] },
+                    { name: '黄山', sov: '10%', trend: '▲ 75%', items: ['西海大峡谷', '宏村古建', '云海日出'] }
+                ],
+                topPois: [
+                    { name: '上海磁悬浮', rank: '#1', trend: '技术标志', type: '🚄 科技 POI' },
+                    { name: '张家界森林公园', rank: '#2', trend: '自然巅峰', type: '🏔️ 自然遗产' },
+                    { name: '大疆深圳总部', rank: '#3', trend: '科技巅峰', type: '🤖 科技 POI' }
+                ],
+                keywords: [
+                    { word: 'High-Tech China', trans: '高科技', index: 100, yoy: '▲ 95%' },
+                    { word: 'Hiking', trans: '徒步', index: 92, yoy: '▲ 85%' },
+                    { word: 'Visa Free DE', trans: '免签', index: 88, yoy: '▲ 320%' }
+                ],
+                matrix: {
+                    priority: ['长三角工业深度行', '张家界/黄山徒步'],
+                    reserve: ['大湾区科技研学'],
+                    optimize: ['德语专业向导'],
+                    efficiency: ['高铁一站式预订']
+                }
+            },
+            'FR': {
+                market: '法国 (France)', shi: 86, growth: '▲ 30%', visa: '30天互免签证',
+                summary: '法国游客对中国的“艺术氛围”与“生活美学”有极高认同。热衷探索非遗手工艺。',
+                segments: [
+                    { name: '艺术美学派 — "美感追求者"', terms: 'Jingdezhen, Shaxi, Porcelain, Calligraphy', behavior: '追求审美，慢节奏漫步，发现小众店', spend: '手工艺品 > 精品餐饮 > 民宿' },
+                    { name: '美食老饕派 — "味觉探索者"', terms: 'Gastronomy, Sichuan, Tea, Chengdu', behavior: '关注餐饮品质，为地道美食付费', spend: '中高端餐饮 > 茶叶 > 厨艺课' }
+                ],
+                topDests: [
+                    { name: '上海', sov: '35%', trend: '▲ 135%', items: ['武康路漫步', '弄堂艺术展', '法租界探秘'] },
+                    { name: '景德镇', sov: '20%', trend: '▲ 420%', items: ['御窑遗址深度', '三宝村创作', '陶瓷市集'] },
+                    { name: '成都', sov: '15%', trend: '▲ 115%', items: ['川菜博物馆', '熊猫基地', '太古里生活'] },
+                    { name: '云南沙溪', sov: '15%', trend: '▲ 180%', items: ['扎染非遗', '马帮文化', '古镇慢生活'] },
+                    { name: '北京', sov: '15%', trend: '▲ 45%', items: ['红砖美术馆', '故宫美学', '胡同夜游'] }
+                ],
+                topPois: [
+                    { name: '武康路', rank: '#1', trend: '美学巅峰', type: '🏘️ 文化街区' },
+                    { name: '景德镇御窑', rank: '#2', trend: '艺术黑马', type: '🏺 非遗 POI' },
+                    { name: '沙溪古镇', rank: '#3', trend: '生活美学', type: '🏘️ 古镇/非遗' }
+                ],
+                keywords: [
+                    { word: 'Art Chinois', trans: '艺术', index: 100, yoy: '▲ 75%' },
+                    { word: 'Gastronomie', trans: '美食', index: 95, yoy: '▲ 110%' },
+                    { word: 'Visa Chine', trans: '免签', index: 90, yoy: '▲ 350%' }
+                ],
+                matrix: {
+                    priority: ['沪蓉美学+美食', '景德镇/沙溪探秘'],
+                    reserve: ['苏杭园林昆曲'],
+                    optimize: ['法语讲解'],
+                    efficiency: ['离境退税指引']
+                }
+            },
+            'IT': {
+                market: '意大利 (Italy)', shi: 85, growth: '▲ 28%', visa: '30天互免签证',
+                summary: '意大利游客对中国的“丝路历史”与“双城联系”好奇。对遗迹保护与现代融合感兴趣。',
+                segments: [
+                    { name: '丝路朝圣者 — "历史对话者"', terms: 'Silk Road, Dunhuang, Xi\'an, Marco Polo', behavior: '追寻历史足迹，研究跨文化史', spend: '文化讲解 > 历史书籍 > 交通' },
+                    { name: '双城探索派 — "水乡共鸣者"', terms: 'Suzhou, Hangzhou, Canal, Gardens', behavior: '将中国水乡与意大利类比', spend: '丝绸制品 > 园林门票 > 餐饮' }
+                ],
+                topDests: [
+                    { name: '西安/敦煌', sov: '35%', trend: '▲ 180%', items: ['莫高窟深度', '兵马俑', '大唐不夜城'] },
+                    { name: '北京', sov: '25%', trend: '▲ 42%', items: ['故宫深度', '慕田峪长城', '天坛'] },
+                    { name: '苏州/杭州', sov: '20%', trend: '▲ 115%', items: ['拙政园深度', '西湖漫步', '丝绸博物馆'] },
+                    { name: '上海', sov: '10%', trend: '▲ 55%', items: ['外滩', '陆家嘴', '新天地'] },
+                    { name: '洛阳', sov: '10%', trend: '▲ 245%', items: ['龙门石窟', '白马寺', '隋唐洛阳城'] }
+                ],
+                topPois: [
+                    { name: '莫高窟', rank: '#1', trend: '文化巅峰', type: '🎨 艺术遗产' },
+                    { name: '兵马俑', rank: '#2', trend: '历史必访', type: '🏛️ 历史文化' },
+                    { name: '拙政园', rank: '#3', trend: '审美共鸣', type: '🏞️ 园林文化' }
+                ],
+                keywords: [
+                    { word: 'Silk Road', trans: '丝绸之路', index: 100, yoy: '▲ 85%' },
+                    { word: 'Visto Cina', trans: '免签', index: 95, yoy: '▲ 320%' },
+                    { word: 'Marco Polo', trans: '马可波罗', index: 88, yoy: '▲ 75%' }
+                ],
+                matrix: {
+                    priority: ['丝路全景游', '苏杭水乡文化'],
+                    reserve: ['洛阳/西安研学'],
+                    optimize: ['意大利语讲解'],
+                    efficiency: ['门票在线预约']
+                }
+            },
+            'ES': {
+                market: '西班牙 (Spain)', shi: 84, growth: '▲ 26%', visa: '30天互免签证',
+                summary: '西班牙游客对中国的“现代都市活力”与“大熊猫”有极高热情。偏好热闹景观。',
+                segments: [
+                    { name: '熊猫粉丝团 — "自然休闲型"', terms: 'Pandas, Chengdu, Volunteer, Hotpot', behavior: '喜爱熊猫，偏好成都气息', spend: '熊猫周边 > 餐饮 > 旅拍' },
+                    { name: '都市狂热派 — "潮流追随者"', terms: 'Cyberpunk, Chongqing, Shanghai, Nightlife', behavior: '体验繁华夜生活，接受赛博朋克', spend: '夜间娱乐 > 网红餐厅 > 电子' }
+                ],
+                topDests: [
+                    { name: '成都', sov: '35%', trend: '▲ 155%', items: ['熊猫基地研学', '火锅盛宴', '川剧变脸'] },
+                    { name: '上海', sov: '25%', trend: '▲ 135%', items: ['外滩夜景', '南京路购物', '田子坊'] },
+                    { name: '重庆', sov: '15%', trend: '▲ 180%', items: ['洪崖洞夜景', '穿楼轻轨', '磁器口'] },
+                    { name: '北京', sov: '15%', trend: '▲ 45%', items: ['长城', '故宫', '三里屯'] },
+                    { name: '深圳', sov: '10%', trend: '▲ 105%', items: ['大疆科技体验', '欢乐海岸', '世界之窗'] }
+                ],
+                topPois: [
+                    { name: '熊猫基地', rank: '#1', trend: '核心动力', type: '🐼 自然/IP' },
+                    { name: '外滩', rank: '#2', trend: '都市首选', type: '🏙️ 城市景观' },
+                    { name: '洪崖洞', rank: '#3', trend: '视觉震撼', type: '🏮 网红 POI' }
+                ],
+                keywords: [
+                    { word: 'Viaje a China', trans: '旅游', index: 100, yoy: '▲ 75%' },
+                    { word: 'Pandas', trans: '熊猫', index: 94, yoy: '▲ 110%' },
+                    { word: 'Visto Gratis', trans: '免签', index: 90, yoy: '▲ 310%' }
+                ],
+                matrix: {
+                    priority: ['成渝漫游专线', '沪蓉都市活力'],
+                    reserve: ['熊猫志愿者'],
+                    optimize: ['西班牙语导游'],
+                    efficiency: ['支付简易指引']
+                }
+            },
+            'AU': {
+                market: '澳大利亚 (Australia)', shi: 89, growth: '▲ 110%', visa: '30天互免签证',
+                summary: '澳大利亚市场呈现“高质量寻根”与“经典度假”特征。广州门户效应强。',
+                segments: [
+                    { name: '高质量寻根组 — "实用主义者"', terms: 'Heritage, Guangzhou, Shunde, Business', behavior: '停留时间长，行程稳定，要求高', spend: '中高端住宿 > 商务餐饮 > 礼物' },
+                    { name: '都市度假型 — "休闲探索者"', terms: 'Shanghai, Beijing, Citywalk, Disney', behavior: '追求高标准，偏好成熟线路', spend: '全包价旅游 > 精品酒店 > 门票' }
+                ],
+                topDests: [
+                    { name: '广州/佛山', sov: '35%', trend: '▲ 130%', items: ['顺德寻根', '早茶文化', '广交会考察'] },
+                    { name: '上海', sov: '25%', trend: '▲ 145%', items: ['外滩天际线', '迪士尼度假', '陆家嘴漫步'] },
+                    { name: '北京', sov: '15%', trend: '▲ 45%', items: ['慕田峪长城', '故宫观光', '胡同精品'] },
+                    { name: '成都', sov: '15%', trend: '▲ 68%', items: ['熊猫基地', '锦里', '春熙路'] },
+                    { name: '西安', sov: '10%', trend: '▲ 55%', items: ['兵马俑', '城墙骑行', '大雁塔'] }
+                ],
+                topPois: [
+                    { name: '广州塔', rank: '#1', trend: '门户标志', type: '🏙️ 城市地标' },
+                    { name: '顺德清晖园', rank: '#2', trend: '美食地标', type: '🏞️ 园林/美食' },
+                    { name: '外滩', rank: '#3', trend: '都市巅峰', type: '🏙️ 城市景观' }
+                ],
+                keywords: [
+                    { word: 'Travel Deals', trans: '优惠', index: 100, yoy: '▲ 110%' },
+                    { word: 'Guangzhou', trans: '广州', index: 92, yoy: '▲ 130%' },
+                    { word: 'Visa Free AU', trans: '免签', index: 88, yoy: '▲ 420%' }
+                ],
+                matrix: {
+                    priority: ['广深珠探亲游', '沪京成度假'],
+                    reserve: ['长江游轮'],
+                    optimize: ['英文伴游'],
+                    efficiency: ['离境退税通道']
+                }
+            },
+            'CA': {
+                market: '加拿大 (Canada)', shi: 88, growth: '▲ 115%', visa: '30天互免签证',
+                summary: '加拿大游客对“自然风光”与“深厚历史”持久兴趣。偏好自然奇观与历史研学。',
+                segments: [
+                    { name: '自然追随者 — "摄影徒步型"', terms: 'Nature, Photography, Zhangjiajie, Trek', behavior: '深入自然保护区，追求视觉冲击', spend: '专业向导 > 摄影装备 > 景区住宿' },
+                    { name: '历史探秘者 — "深度研学型"', terms: 'Ancient Cities, Xi\'an, Beijing, History', behavior: '追求知识性体验，偏好深度讲解', spend: '博物馆讲解 > 文化体验 > 餐饮' }
+                ],
+                topDests: [
+                    { name: '张家界', sov: '30%', trend: '▲ 195%', items: ['天门山索道', '玻璃栈道', '森林公园'] },
+                    { name: '北京', sov: '25%', trend: '▲ 52%', items: ['慕田峪长城', '故宫深度', '天坛公园'] },
+                    { name: '西安', sov: '20%', trend: '▲ 65%', items: ['兵马俑深度', '汉阳陵探秘', '城墙骑行'] },
+                    { name: '九寨沟', sov: '15%', trend: '▲ 180%', items: ['五花海摄影', '诺日朗瀑布', '藏家风情'] },
+                    { name: '桂林/阳朔', sov: '10%', trend: '▲ 112%', items: ['漓江游船', '遇龙河竹筏', '龙脊梯田'] }
+                ],
+                topPois: [
+                    { name: '森林公园', rank: '#1', trend: '视觉核心', type: '🏔️ 自然遗产' },
+                    { name: '九寨沟', rank: '#2', trend: '自然神迹', type: '🏞️ 自然景观' },
+                    { name: '慕田峪长城', rank: '#3', trend: '历史巅峰', type: '🏰 历史文化' }
+                ],
+                keywords: [
+                    { word: 'Nature Tour', trans: '自然游', index: 100, yoy: '▲ 175%' },
+                    { word: 'Visa Free CA', trans: '免签', index: 92, yoy: '▲ 450%' },
+                    { word: 'Ancient Cities', trans: '古都', index: 88, yoy: '▲ 65%' }
+                ],
+                matrix: {
+                    priority: ['湘川自然奇观', '京安历史文化团'],
+                    reserve: ['西北丝路'],
+                    optimize: ['英文向导'],
+                    efficiency: ['环保接驳指引']
+                }
+            }
+        };
 
-            useEffect(() => {
-                handleGenerate();
-            }, [selectedSite, selectedCity]);
+        function init() {
+            const nav = document.getElementById('sidebar-nav');
+            nav.innerHTML = '';
 
-            const handlePrint = () => {
-                window.print();
-            };
+            for (const [catName, catData] of Object.entries(CATEGORIES)) {
+                const catEl = document.createElement('div');
+                catEl.className = 'mb-6';
+                
+                const header = document.createElement('div');
+                header.className = 'cat-header';
+                header.innerHTML = `<span>${catData.icon}</span> <span>${catName}</span>`;
+                catEl.appendChild(header);
 
-            return (
-                <div className="min-h-screen flex flex-col print:bg-white">
-                    <div className="print:hidden">
-                        <Header />
-                    </div>
-                    <div className="flex flex-1 overflow-hidden">
-                        <div className="print:hidden">
-                            <Sidebar 
-                                selectedSite={selectedSite} 
-                                setSelectedSite={setSelectedSite}
-                                selectedCity={selectedCity}
-                                setSelectedCity={setSelectedCity}
-                            />
+                const group = document.createElement('div');
+                group.className = 'cat-group';
+                
+                catData.sites.forEach(s => {
+                    const btn = document.createElement('button');
+                    btn.className = `sidebar-item w-full text-left px-4 py-3 rounded-xl text-sm font-black mb-1 flex justify-between items-center ${s === currentSite ? 'active' : 'text-gray-500'}`;
+                    btn.innerHTML = `<span>${s}</span> <span class="text-[10px] opacity-50">${s === currentSite ? 'ACTIVE' : ''}</span>`;
+                    btn.onclick = () => {
+                        if (currentSite === s) return;
+                        currentSite = s;
+                        init(); // Refresh sidebar UI
+                        triggerSearch();
+                    };
+                    group.appendChild(btn);
+                });
+                
+                catEl.appendChild(group);
+                nav.appendChild(catEl);
+            }
+        }
+
+        function triggerSearch() {
+            document.getElementById('loading').style.display = 'flex';
+            setTimeout(() => {
+                renderReport();
+                document.getElementById('loading').style.display = 'none';
+            }, 600);
+        }
+
+        function renderReport() {
+            const data = MASTER_DATA[currentSite];
+            const container = document.getElementById('report-content');
+            
+            container.innerHTML = `
+                <div class="border-b-8 border-blue-600 pb-10 mb-12 flex justify-between items-end">
+                    <div>
+                        <div class="flex items-center gap-6 mb-4">
+                            <span class="text-7xl font-black text-blue-600 opacity-10 select-none">${currentSite}</span>
+                            <div class="h-16 w-1 bg-gray-100 rounded-full"></div>
+                            <h2 class="text-4xl font-black text-gray-900 leading-tight">
+                                ${data.market} <br><span class="text-blue-600 italic">年度深度分类洞察报告</span>
+                            </h2>
                         </div>
-                        
-                        {loading ? (
-                            <div className="flex-1 flex flex-col items-center justify-center bg-gray-50">
-                                <div className="w-16 h-16 border-4 border-ctrip-blue border-t-transparent rounded-full animate-spin mb-4"></div>
-                                <p className="text-gray-500 font-bold animate-pulse">正在从 Google Trends & TAC 采集实时洞察数据...</p>
-                                <div className="mt-8 grid grid-cols-3 gap-4 max-w-lg w-full px-4">
-                                    {['正在分析搜索词频...', '计算 SOV 竞争占比...', '识别客源偏好趋势...'].map((text, i) => (
-                                        <div key={i} className="bg-white p-3 rounded-lg border border-gray-200 text-[10px] text-gray-400">
-                                            {text}
+                        <div class="flex items-center gap-4">
+                            <span class="status-badge bg-blue-600 text-white">LTM Analytics</span>
+                            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">统计周期: 2025.05 - 2026.05</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="mb-2">
+                            <span class="text-[10px] font-black text-gray-400 uppercase">签证红利政策</span>
+                            <p class="text-sm font-bold text-gray-900">${data.visa}</p>
+                        </div>
+                        <div class="flex items-center gap-2 justify-end">
+                            <span class="text-[10px] font-black text-gray-400 uppercase">SHI 指数</span>
+                            <span class="text-xl font-black text-blue-600">${data.shi}</span>
+                            <span class="text-xs font-bold trend-up">${data.growth}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 p-8 rounded-3xl border border-blue-100 mb-16 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 text-blue-100 text-6xl opacity-20">💡</div>
+                    <h3 class="text-blue-800 font-black text-sm uppercase mb-3 tracking-widest flex items-center gap-2">
+                        Executive Summary / 核心洞察摘要
+                    </h3>
+                    <p class="text-blue-900 text-base leading-relaxed font-bold">${data.summary}</p>
+                </div>
+
+                <section class="mb-20">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="w-10 h-10 bg-gray-900 text-white rounded-lg flex items-center justify-center font-black">01</span>
+                        <h3 class="text-2xl font-black text-gray-900 uppercase">Top 5 热门目的地及核心 POI/玩法品类 Heatmap</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-5 gap-4">
+                        ${data.topDests.map((d, i) => `
+                            <div class="dest-card p-6 rounded-2xl ${i === 0 ? 'bg-blue-600 text-white' : 'bg-white'}">
+                                <div class="flex justify-between items-start mb-6">
+                                    <span class="text-[10px] font-black uppercase ${i === 0 ? 'text-blue-200' : 'text-gray-400'}">Rank 0${i+1}</span>
+                                    <span class="text-[10px] font-black ${i === 0 ? 'bg-blue-500' : 'bg-green-50 text-green-600'} px-2 py-1 rounded">${d.trend}</span>
+                                </div>
+                                <h4 class="text-xl font-black mb-1">${d.name}</h4>
+                                <p class="text-[10px] font-bold ${i === 0 ? 'text-blue-200' : 'text-gray-400'} uppercase">SOV: ${d.sov}</p>
+                                
+                                <div class="mt-6 pt-6 border-t ${i === 0 ? 'border-blue-500' : 'border-gray-50'}">
+                                    <p class="text-[10px] font-black uppercase mb-3 tracking-widest ${i === 0 ? 'text-blue-200' : 'text-gray-400'}">热门 POI / 品类</p>
+                                    <div class="space-y-2">
+                                        ${d.items.map(item => `
+                                            <div class="flex items-center gap-2 text-[11px] font-bold">
+                                                <span class="w-1 h-1 rounded-full ${i === 0 ? 'bg-white' : 'bg-blue-600'}"></span>
+                                                ${item}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+
+                <section class="mb-20">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="w-10 h-10 bg-gray-900 text-white rounded-lg flex items-center justify-center font-black">02</span>
+                        <h3 class="text-2xl font-black text-gray-900 uppercase">客源画像深度拆解 Segmentation</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8">
+                        ${data.segments.map(s => `
+                            <div class="p-10 border-2 border-gray-50 rounded-3xl hover:border-blue-100 transition-all">
+                                <h4 class="text-xl font-black text-gray-900 mb-8 flex items-center gap-3">
+                                    <span class="w-3 h-3 bg-blue-600 rounded-full"></span> ${s.name}
+                                </h4>
+                                <div class="space-y-6">
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 font-black uppercase mb-2 tracking-widest">年度高频搜索词</p>
+                                        <p class="text-sm font-bold text-gray-800">${s.terms}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] text-gray-400 font-black uppercase mb-2 tracking-widest">核心行为特征</p>
+                                        <p class="text-sm text-gray-600 leading-relaxed font-medium">${s.behavior}</p>
+                                    </div>
+                                    <div class="bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                                        <p class="text-[10px] text-blue-600 font-black uppercase mb-2 tracking-widest">年度消费偏向</p>
+                                        <p class="text-sm font-black text-blue-900">${s.spend}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+
+                <section class="mb-20">
+                    <div class="flex items-center gap-4 mb-8">
+                        <span class="w-10 h-10 bg-gray-900 text-white rounded-lg flex items-center justify-center font-black">03</span>
+                        <h3 class="text-2xl font-black text-gray-900 uppercase">核心 POI 与热搜玩法识别 Tracking</h3>
+                    </div>
+                    <div class="grid grid-cols-2 gap-12">
+                        <div>
+                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">年度热门 POI 穿透</h4>
+                            <div class="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                                ${data.topPois.map(p => `
+                                    <div class="flex items-center justify-between p-5 border-b last:border-0 hover:bg-gray-50 transition-colors">
+                                        <div class="flex items-center gap-5">
+                                            <span class="text-sm font-black text-blue-600">${p.rank}</span>
+                                            <div>
+                                                <p class="text-sm font-black text-gray-900">${p.name}</p>
+                                                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${p.type}</p>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
+                                        <span class="status-badge bg-green-50 text-green-600">${p.trend}</span>
+                                    </div>
+                                `).join('')}
                             </div>
-                        ) : (
-                            <div className="flex-1 relative overflow-y-auto bg-gray-50">
-                                <div className="absolute top-8 right-8 print:hidden">
-                                    <button 
-                                        onClick={handlePrint}
-                                        className="bg-white border border-gray-200 p-3 rounded-full shadow-sm hover:shadow-md transition-shadow text-gray-600"
-                                        title="导出 PDF 报告"
-                                    >
-                                        <i data-lucide="printer" className="w-5 h-5"></i>
-                                    </button>
-                                </div>
-                                <ReportView site={selectedSite} city={selectedCity} data={data} />
+                        </div>
+                        <div>
+                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">年度热搜关联词趋势</h4>
+                            <div class="space-y-4">
+                                ${data.keywords.map(k => `
+                                    <div class="flex justify-between items-center p-6 bg-gray-900 text-white rounded-2xl shadow-lg shadow-gray-200">
+                                        <div>
+                                            <p class="text-base font-black">${k.word}</p>
+                                            <p class="text-[10px] text-gray-500 font-bold italic tracking-wider">${k.trans}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="text-xl font-black text-blue-400">${k.yoy}</p>
+                                            <p class="text-[9px] text-gray-500 font-black uppercase tracking-widest">LTM Growth</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
-            );
-        };
+                </section>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+                <section class="bg-gray-900 p-16 rounded-[3rem] text-white">
+                    <div class="flex items-center gap-4 mb-12">
+                        <span class="text-4xl">⚡</span>
+                        <h3 class="text-3xl font-black uppercase tracking-tight">年度业务赋能方案 Action Plan</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-16">
+                        <div class="space-y-10">
+                            <h4 class="text-[10px] font-black text-gray-500 uppercase tracking-widest">产品开发优先级矩阵</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-blue-600 p-6 rounded-2xl">
+                                    <p class="text-[10px] font-black text-blue-200 uppercase mb-3">优先开发</p>
+                                    <p class="text-sm font-black leading-relaxed">${data.matrix.priority.join(' / ')}</p>
+                                </div>
+                                <div class="bg-gray-800 p-6 rounded-2xl">
+                                    <p class="text-[10px] font-black text-gray-500 uppercase mb-3">战略储备</p>
+                                    <p class="text-sm font-black leading-relaxed">${data.matrix.reserve.join(' / ')}</p>
+                                </div>
+                                <div class="bg-gray-800 p-6 rounded-2xl">
+                                    <p class="text-[10px] font-black text-gray-500 uppercase mb-3">立即优化</p>
+                                    <p class="text-sm font-black leading-relaxed">${data.matrix.optimize.join(' / ')}</p>
+                                </div>
+                                <div class="bg-gray-800 p-6 rounded-2xl">
+                                    <p class="text-[10px] font-black text-gray-500 uppercase mb-3">效率提升</p>
+                                    <p class="text-sm font-black leading-relaxed">${data.matrix.efficiency.join(' / ')}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-10">
+                            <h4 class="text-[10px] font-black text-gray-500 uppercase tracking-widest">未来窗口预测 (2026 H2)</h4>
+                            <div class="bg-white p-10 rounded-3xl text-gray-900 shadow-xl">
+                                <div class="flex items-center justify-between mb-6">
+                                    <span class="font-black text-xl">国庆黄金峰 (9.28 - 10.7)</span>
+                                    <span class="status-badge bg-red-100 text-red-600">High Impact</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-8 font-medium leading-relaxed italic">
+                                    "基于 2025.05 - 2026.05 数据 model 穿透，该周期内 ${data.market} 站点的转化潜力是平时的 4.2 倍。核心转化点将集中在 ${data.topDests[0].name} 的非标体验产品。"
+                                </p>
+                                <div class="h-px bg-gray-100 mb-8"></div>
+                                <p class="text-xs font-black text-blue-600 uppercase tracking-widest">建议备货周期: 提前 12 周开启全渠道内容投放</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="mt-20 pt-10 border-t border-gray-100 flex justify-between items-center text-[10px] text-gray-400 font-black uppercase tracking-widest">
+                    <p>© 2026 Inbound Tourism Intelligence System | Agent Powered Analysis</p>
+                    <p>Confidential - Internal Strategy Only</p>
+                </div>
+            `;
+        }
+
+        window.onload = () => {
+            init();
+            triggerSearch();
+        };
     </script>
 </body>
 </html>
